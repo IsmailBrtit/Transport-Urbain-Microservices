@@ -1,0 +1,48 @@
+services:
+  postgres-abonnements:
+    container_name: postgres-abonnements
+    image: postgres:14
+    environment:
+      POSTGRES_DB: abonnements_db
+      POSTGRES_USER: abonnements_user
+      POSTGRES_PASSWORD: abonnements_password
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_abonnements_data:/data/postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - abonnements-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abonnements_user -d abonnements_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  abonnements-service:
+    build:
+      context: ./abonnements-service/abonnements-service
+      dockerfile: Dockerfile
+      network: host
+    container_name: abonnements-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres-abonnements:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-abonnements:5432/abonnements_db
+      SPRING_DATASOURCE_USERNAME: abonnements_user
+      SPRING_DATASOURCE_PASSWORD: abonnements_password
+      SPRING_PROFILES_ACTIVE: docker
+    networks:
+      - abonnements-network
+    restart: unless-stopped
+
+volumes:
+  postgres_abonnements_data:
+
+networks:
+  abonnements-network:
+    driver: bridge

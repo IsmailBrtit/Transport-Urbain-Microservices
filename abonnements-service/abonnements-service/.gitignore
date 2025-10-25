@@ -19,6 +19,7 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
+.idea/
 *.iws
 *.iml
 *.ipr
@@ -37,3 +38,4 @@ out/
 .vscode/
 
 ../nsarr-pejct.txt
+Docs/
