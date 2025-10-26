@@ -1,9 +1,6 @@
 package com.example.abonnements_service.dto;
 
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
+import com.example.abonnements_service.model.StatutAbonnement;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,16 +14,13 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class AbonnementRequest {
-    @NotNull
+public class AbonnementResponse {
+    private UUID id;
     private UUID utilisateurId;
-    @NotNull
     private Long forfaitId;
-    @NotNull
     private LocalDate dateDebut;
-    @NotNull
     private LocalDate dateFin;
-    @NotNull
     private BigDecimal prix;
     private String devise;
+    private StatutAbonnement statut;
 }
