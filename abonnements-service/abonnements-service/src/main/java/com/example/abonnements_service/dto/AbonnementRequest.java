@@ -1,9 +1,7 @@
 package com.example.abonnements_service.dto;
 
+import com.example.abonnements_service.model.StatutAbonnement;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PastOrPresent;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,6 +24,7 @@ public class AbonnementRequest {
     private LocalDate dateDebut;
     @NotNull
     private LocalDate dateFin;
+    private StatutAbonnement statut; // Optional - defaults to ACTIVE
     @NotNull
     private BigDecimal prix;
     private String devise;
