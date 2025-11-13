@@ -6,4 +6,7 @@ fileignoreconfig:
   checksum: fa4b996cbc44fadbbdddab5cdd9786e3260d49e994c6b8b3a1ce5fda47817537
 - filename: user-service/src/main/java/projet_nassar_microservice/user_service/service/JwtService.java
   checksum: 888ed568ab18c029c3018b2c627c40f2a31a3798a1de5deefc3edaa55a23d4fa
+- filename: auth-test-service/mvnw
+  checksum: cac98a085910d0abf1315a179777ec5d30d5d849ece3423abe4eddbbda30927a
+
 version: "1.0"

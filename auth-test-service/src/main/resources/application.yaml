@@ -1,0 +1,16 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: auth-test-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/my-realm
+          jwk-set-uri: http://localhost:8180/realms/my-realm/protocol/openid-connect/certs
+
+logging:
+  level:
+    org.springframework.security: DEBUG
