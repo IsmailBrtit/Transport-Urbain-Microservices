@@ -1,0 +1,9 @@
+
+fileignoreconfig:
+- filename: gateway-service/src/main/resources/application.yaml
+  checksum: d862b61de73f1552933f62f11bb094066dbd52252dea8efec92a7ca6766096cd
+- filename: gateway-service/mvnw
+  checksum: fa4b996cbc44fadbbdddab5cdd9786e3260d49e994c6b8b3a1ce5fda47817537
+- filename: user-service/src/main/java/projet_nassar_microservice/user_service/service/JwtService.java
+  checksum: 888ed568ab18c029c3018b2c627c40f2a31a3798a1de5deefc3edaa55a23d4fa
+version: "1.0"
