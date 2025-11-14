@@ -72,6 +72,20 @@ spring:
                 - TokenRelay=
                 - StripPrefix=1
 
+# Keycloak Admin Configuration for User Registration
+keycloak:
+  admin:
+    server-url: http://localhost:8180
+    realm: my-realm  # Admin realm (usually 'master')
+    client-id: gateway-admin  # Admin client ID
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_CLIENT_SECRET}
+#    username: # Leave empty when using service account
+#    password: # Leave empty when using service account
+  registration:
+    default-roles: USER  # Default roles to assign (comma-separated)
+    email-verified: false  # Set to true if you want emails pre-verified
+
+
 # Actuator endpoints
 management:
   endpoints:
