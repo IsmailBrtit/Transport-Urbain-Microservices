@@ -25,7 +25,7 @@ public class Abonnement {
     private UUID utilisateurId;
 
     @Column(nullable = false)
-    private Long forfaitId;
+    private UUID forfaitId;
 
     @Column(nullable = false)
     private LocalDate dateDebut;
@@ -36,7 +36,9 @@ public class Abonnement {
     @Column(nullable = false)
     private BigDecimal prix;
 
-    private String devise;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Devise devise;
 
     @Enumerated(EnumType.STRING)
     private StatutAbonnement statut;

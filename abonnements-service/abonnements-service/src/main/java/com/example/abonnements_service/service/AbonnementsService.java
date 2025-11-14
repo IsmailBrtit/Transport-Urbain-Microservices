@@ -3,6 +3,7 @@ package com.example.abonnements_service.service;
 import com.example.abonnements_service.dto.AbonnementRequest;
 import com.example.abonnements_service.dto.AbonnementResponse;
 import com.example.abonnements_service.model.Abonnement;
+import com.example.abonnements_service.model.Forfait;
 import com.example.abonnements_service.model.StatutAbonnement;
 import com.example.abonnements_service.repository.AbonnementRepository;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,8 @@ import java.util.stream.Collectors;
 public class AbonnementsService {
 
     private final AbonnementRepository abonnementRepository;
+    private final ForfaitService forfaitService;
+    private final FactureService factureService;
 
     /**
      * Get all subscriptions
@@ -55,22 +58,34 @@ public class AbonnementsService {
         // Validate dates
         validateDates(request.getDateDebut(), request.getDateFin());
 
-        // Build entity
+        // Fetch Forfait entity to get prix and devise (SNAPSHOT pattern)
+        Forfait forfait = forfaitService.getForfaitEntityById(request.getForfaitId());
+
+        // Check if Forfait is active
+        if (!forfait.getActif()) {
+            throw new IllegalStateException("Forfait is not active: " + forfait.getNom());
+        }
+
+        // Build entity with SNAPSHOT of prix/devise from Forfait
         Abonnement abonnement = Abonnement.builder()
                 .utilisateurId(request.getUtilisateurId())
-                .forfaitId(request.getForfaitId())
+                .forfaitId(forfait.getId())
                 .dateDebut(request.getDateDebut())
                 .dateFin(request.getDateFin())
-                .prix(request.getPrix())
-                .devise(request.getDevise() != null ? request.getDevise() : "MAD")
+                .prix(forfait.getPrix())          // SNAPSHOT from Forfait
+                .devise(forfait.getDevise())      // SNAPSHOT from Forfait
                 .statut(request.getStatut() != null ? request.getStatut() : StatutAbonnement.ACTIVE)
                 .build();
 
-        // Save
+        // Save Abonnement
         Abonnement saved = abonnementRepository.save(abonnement);
         log.info("Subscription created with id: {}", saved.getId());
 
-        // TODO: Publish AbonnementCreated event to RabbitMQ
+        // Auto-generate Facture
+        factureService.genererFacture(saved);
+        log.info("Facture generated for abonnement: {}", saved.getId());
+
+        // TODO: Publish AbonnementCreated event to Kafka
 
         return mapToResponse(saved);
     }
@@ -95,20 +110,22 @@ public class AbonnementsService {
         validateDates(newDateDebut, newDateFin);
 
         // Update fields
+        // NOTE: prix and devise cannot be updated - they are snapshots from Forfait
         if (request.getForfaitId() != null) {
-            abonnement.setForfaitId(request.getForfaitId());
+            // If changing forfait, fetch new snapshot
+            Forfait newForfait = forfaitService.getForfaitEntityById(request.getForfaitId());
+            if (!newForfait.getActif()) {
+                throw new IllegalStateException("Cannot update to inactive forfait: " + newForfait.getNom());
+            }
+            abonnement.setForfaitId(newForfait.getId());
+            abonnement.setPrix(newForfait.getPrix());      // Update snapshot with new forfait price
+            abonnement.setDevise(newForfait.getDevise());  // Update snapshot with new forfait devise
         }
         if (request.getDateDebut() != null) {
             abonnement.setDateDebut(request.getDateDebut());
         }
         if (request.getDateFin() != null) {
             abonnement.setDateFin(request.getDateFin());
-        }
-        if (request.getPrix() != null) {
-            abonnement.setPrix(request.getPrix());
-        }
-        if (request.getDevise() != null) {
-            abonnement.setDevise(request.getDevise());
         }
         if (request.getStatut() != null) {
             abonnement.setStatut(request.getStatut());
@@ -117,7 +134,7 @@ public class AbonnementsService {
         Abonnement updated = abonnementRepository.save(abonnement);
         log.info("Subscription updated: {}", id);
 
-        // TODO: Publish AbonnementUpdated event to RabbitMQ
+        // TODO: Publish AbonnementUpdated event to kafka
 
         return mapToResponse(updated);
     }
@@ -137,7 +154,7 @@ public class AbonnementsService {
 
         log.info("Subscription canceled: {}", id);
 
-        // TODO: Publish AbonnementCanceled event to RabbitMQ
+        // TODO: Publish AbonnementCanceled event to kafka
     }
 
     /**
@@ -154,6 +171,71 @@ public class AbonnementsService {
                 .filter(abonnement -> !abonnement.getDateFin().isBefore(today))
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Renew existing subscription with current Forfait prices
+     */
+    public AbonnementResponse renouvelerAbonnement(UUID id) {
+        log.info("Renewing subscription: {}", id);
+
+        // Get existing abonnement
+        Abonnement existingAbonnement = abonnementRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Abonnement not found with id: " + id));
+
+        // Get current Forfait (with CURRENT prices, not snapshot)
+        Forfait forfait = forfaitService.getForfaitEntityById(existingAbonnement.getForfaitId());
+
+        // Check if Forfait is still active
+        if (!forfait.getActif()) {
+            throw new IllegalStateException("Cannot renew: Forfait is no longer active");
+        }
+
+        // Calculate new dates based on existing subscription end date
+        LocalDate newDateDebut = existingAbonnement.getDateFin().plusDays(1);
+        LocalDate newDateFin = calculateDateFin(newDateDebut, forfait.getDuree());
+
+        // Create new subscription with CURRENT Forfait prices (new snapshot)
+        Abonnement renewedAbonnement = Abonnement.builder()
+                .utilisateurId(existingAbonnement.getUtilisateurId())
+                .forfaitId(forfait.getId())
+                .dateDebut(newDateDebut)
+                .dateFin(newDateFin)
+                .prix(forfait.getPrix())          // NEW SNAPSHOT with current price
+                .devise(forfait.getDevise())      // NEW SNAPSHOT
+                .statut(StatutAbonnement.ACTIVE)
+                .build();
+
+        // Save new abonnement
+        Abonnement saved = abonnementRepository.save(renewedAbonnement);
+        log.info("Subscription renewed with id: {}", saved.getId());
+
+        // Generate new Facture
+        factureService.genererFacture(saved);
+        log.info("Facture generated for renewed abonnement: {}", saved.getId());
+
+        // TODO: Publish AbonnementRenewed event to Kafka
+
+        return mapToResponse(saved);
+    }
+
+    /**
+     * Calculate end date based on start date and duration
+     */
+    private LocalDate calculateDateFin(LocalDate dateDebut, String duree) {
+        // Parse duree (e.g., "30 jours", "90 jours", "365 jours")
+        String[] parts = duree.split(" ");
+        if (parts.length >= 2) {
+            try {
+                int days = Integer.parseInt(parts[0]);
+                return dateDebut.plusDays(days);
+            } catch (NumberFormatException e) {
+                log.warn("Could not parse duree: {}, defaulting to 30 days", duree);
+                return dateDebut.plusDays(30);
+            }
+        }
+        // Default to 30 days if parsing fails
+        return dateDebut.plusDays(30);
     }
 
     /**

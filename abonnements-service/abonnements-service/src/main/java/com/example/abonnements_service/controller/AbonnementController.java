@@ -49,4 +49,10 @@ public class AbonnementController {
     public List<AbonnementResponse> getActiveAbonnementsByUserId(@RequestParam UUID userId) {
         return abonnementsService.getActiveAbonnementsByUserId(userId);
     }
+
+    @PostMapping("/{id}/renouveler")
+    @ResponseStatus(HttpStatus.CREATED)
+    public AbonnementResponse renouvelerAbonnement(@PathVariable UUID id) {
+        return abonnementsService.renouvelerAbonnement(id);
+    }
 }

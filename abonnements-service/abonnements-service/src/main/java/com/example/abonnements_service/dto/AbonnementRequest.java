@@ -16,16 +16,17 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AbonnementRequest {
-    @NotNull
+    @NotNull(message = "Utilisateur ID is required")
     private UUID utilisateurId;
-    @NotNull
-    private Long forfaitId;
-    @NotNull
+
+    @NotNull(message = "Forfait ID is required")
+    private UUID forfaitId;
+
+    @NotNull(message = "Date debut is required")
     private LocalDate dateDebut;
-    @NotNull
+
+    @NotNull(message = "Date fin is required")
     private LocalDate dateFin;
+
     private StatutAbonnement statut; // Optional - defaults to ACTIVE
-    @NotNull
-    private BigDecimal prix;
-    private String devise;
 }
