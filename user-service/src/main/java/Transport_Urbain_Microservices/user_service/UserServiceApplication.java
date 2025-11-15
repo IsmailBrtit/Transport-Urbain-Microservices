@@ -1,4 +1,4 @@
-package projet_nassar_microservice.user_service;
+package Transport_Urbain_Microservices.user_service;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

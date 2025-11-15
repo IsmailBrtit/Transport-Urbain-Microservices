@@ -71,6 +71,13 @@ spring:
               filters:
                 - TokenRelay=
                 - StripPrefix=1
+            - id: user-service
+              uri: http://localhost:8082
+              predicates:
+                - Path=/user/**
+              filters:
+                - TokenRelay=
+                - StripPrefix=1
 
 # Keycloak Admin Configuration for User Registration
 keycloak:

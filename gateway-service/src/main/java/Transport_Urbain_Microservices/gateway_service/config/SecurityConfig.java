@@ -26,7 +26,7 @@ public class SecurityConfig {
         http
                 // Authorization rules
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/", "/public/**", "/actuator/**", "/login/**", "/error").permitAll()
+                        .pathMatchers("/", "/public/**","/user/register", "/actuator/**", "/login/**", "/error").permitAll()
                         .anyExchange().authenticated()
                 )
 
