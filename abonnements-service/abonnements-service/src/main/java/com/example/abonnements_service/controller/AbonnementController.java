@@ -2,6 +2,7 @@ package com.example.abonnements_service.controller;
 
 import com.example.abonnements_service.dto.AbonnementRequest;
 import com.example.abonnements_service.dto.AbonnementResponse;
+import com.example.abonnements_service.exception.ResourceNotFoundException;
 import com.example.abonnements_service.service.AbonnementsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -26,7 +27,7 @@ public class AbonnementController {
     @GetMapping("/{id}")
     public AbonnementResponse getAbonnementById(@PathVariable UUID id) {
         return abonnementsService.findById(id)
-                .orElseThrow(() -> new AbonnementsService.ResourceNotFoundException("Abonnement not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Abonnement not found with id: " + id));
     }
 
     @GetMapping

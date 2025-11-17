@@ -1,0 +1,67 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.5.6'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'Notifications Service'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Spring Boot starters
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// Email support
+	implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+	// Thymeleaf for email templates
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	// Spring Actuator - Health checks and monitoring
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// Micrometer Prometheus - Metrics for production monitoring
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+	// Swagger/OpenAPI - Interactive API documentation
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
+
+	// Kafka - Event-driven communication
+	implementation 'org.springframework.kafka:spring-kafka'
+
+	// Lombok
+	compileOnly 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// PostgreSQL
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// Testing
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testRuntimeOnly 'com.h2database:h2'  // In-memory database for tests
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}

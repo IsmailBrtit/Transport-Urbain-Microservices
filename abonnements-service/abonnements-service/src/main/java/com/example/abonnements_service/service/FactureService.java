@@ -1,9 +1,11 @@
 package com.example.abonnements_service.service;
 
 import com.example.abonnements_service.dto.FactureResponse;
+import com.example.abonnements_service.exception.ResourceNotFoundException;
 import com.example.abonnements_service.model.Abonnement;
 import com.example.abonnements_service.model.Facture;
 import com.example.abonnements_service.model.StatutFacture;
+import com.example.abonnements_service.repository.AbonnementRepository;
 import com.example.abonnements_service.repository.FactureRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 public class FactureService {
 
     private final FactureRepository factureRepository;
+    private final AbonnementRepository abonnementRepository;
 
     /**
      * Generate facture for an abonnement
@@ -125,12 +128,4 @@ public class FactureService {
                 .build();
     }
 
-    /**
-     * Custom exception for resource not found
-     */
-    public static class ResourceNotFoundException extends RuntimeException {
-        public ResourceNotFoundException(String message) {
-            super(message);
-        }
-    }
 }

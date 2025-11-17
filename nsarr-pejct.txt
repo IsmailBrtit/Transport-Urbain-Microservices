@@ -1,0 +1,54 @@
+between services soit grpc or rest 
+documentation in swager
+kaffka for real time 
+postgres sql or mongodb casanda
+no need spring cloud cause we will use k8s 
+achat d ticket cherche pour l construction 
+ticket 
+abonements
+
+
+
+
+abonnement
+🔄 How They Work Together
+
+  Typical Flow:
+
+  1. ADMIN creates Forfait
+     └─> "Mensuel Standard" - 200 MAD for 30 days
+
+  2. USER selects Forfait and subscribes
+     └─> System creates Abonnement
+         ├─> Copies prix (200 MAD) and devise from Forfait (SNAPSHOT!)
+         ├─> Sets dates (2025-01-15 to 2025-02-15)
+         └─> Sets status to ACTIF
+
+  3. System automatically generates Facture
+     └─> Links to Abonnement
+     └─> Creates invoice number "FAC-2025-00123"
+     └─> Sets montant = 200 MAD
+     └─> Status = EN_ATTENTE (until payment processed)
+
+  4. Payment service processes payment
+     └─> Updates Facture status to PAYEE
+
+  5. Subscription expires on 2025-02-15
+     └─> System updates Abonnement status to EXPIRE
+
+🎯 Why This Design?
+
+  Historical Accuracy:
+  - If admin changes Forfait price from 200 MAD to 250 MAD
+  - Existing subscribers keep their 200 MAD price (stored in Abonnement snapshot)
+  - Only NEW subscribers pay 250 MAD
+
+  Legal/Accounting:
+  - Facture provides official financial record
+  - Required for audits, refunds, and compliance
+  - Separate from subscription logic
+
+  Flexibility:
+  - Can deactivate old Forfaits without deleting them
+  - Can offer promotional prices (create new Forfait)
+  - Can track price history through Abonnement snapshots

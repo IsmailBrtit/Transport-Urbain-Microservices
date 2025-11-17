@@ -2,6 +2,9 @@ package com.example.abonnements_service.service;
 
 import com.example.abonnements_service.dto.AbonnementRequest;
 import com.example.abonnements_service.dto.AbonnementResponse;
+import com.example.abonnements_service.event.AbonnementEvent;
+import com.example.abonnements_service.event.EventType;
+import com.example.abonnements_service.exception.ResourceNotFoundException;
 import com.example.abonnements_service.model.Abonnement;
 import com.example.abonnements_service.model.Forfait;
 import com.example.abonnements_service.model.StatutAbonnement;
@@ -26,6 +29,7 @@ public class AbonnementsService {
     private final AbonnementRepository abonnementRepository;
     private final ForfaitService forfaitService;
     private final FactureService factureService;
+    private final KafkaProducerService kafkaProducerService;
 
     /**
      * Get all subscriptions
@@ -82,10 +86,11 @@ public class AbonnementsService {
         log.info("Subscription created with id: {}", saved.getId());
 
         // Auto-generate Facture
-        factureService.genererFacture(saved);
+        var facture = factureService.genererFacture(saved);
         log.info("Facture generated for abonnement: {}", saved.getId());
 
-        // TODO: Publish AbonnementCreated event to Kafka
+        // Publish AbonnementCreated event to Kafka
+        publishEvent(saved, forfait, facture.getNumeroFacture(), EventType.ABONNEMENT_CREATED);
 
         return mapToResponse(saved);
     }
@@ -134,7 +139,11 @@ public class AbonnementsService {
         Abonnement updated = abonnementRepository.save(abonnement);
         log.info("Subscription updated: {}", id);
 
-        // TODO: Publish AbonnementUpdated event to kafka
+        // Fetch forfait for event publishing
+        Forfait currentForfait = forfaitService.getForfaitEntityById(updated.getForfaitId());
+
+        // Note: We don't publish an event for updates to avoid noise
+        // Consider adding if needed for audit trail
 
         return mapToResponse(updated);
     }
@@ -154,7 +163,9 @@ public class AbonnementsService {
 
         log.info("Subscription canceled: {}", id);
 
-        // TODO: Publish AbonnementCanceled event to kafka
+        // Publish AbonnementCanceled event to Kafka
+        Forfait forfait = forfaitService.getForfaitEntityById(abonnement.getForfaitId());
+        publishEvent(abonnement, forfait, null, EventType.ABONNEMENT_CANCELED);
     }
 
     /**
@@ -211,10 +222,11 @@ public class AbonnementsService {
         log.info("Subscription renewed with id: {}", saved.getId());
 
         // Generate new Facture
-        factureService.genererFacture(saved);
+        var facture = factureService.genererFacture(saved);
         log.info("Facture generated for renewed abonnement: {}", saved.getId());
 
-        // TODO: Publish AbonnementRenewed event to Kafka
+        // Publish AbonnementRenewed event to Kafka
+        publishEvent(saved, forfait, facture.getNumeroFacture(), EventType.ABONNEMENT_RENEWED);
 
         return mapToResponse(saved);
     }
@@ -272,11 +284,30 @@ public class AbonnementsService {
     }
 
     /**
-     * Custom exception for resource not found
+     * Publish event to Kafka for inter-service communication
      */
-    public static class ResourceNotFoundException extends RuntimeException {
-        public ResourceNotFoundException(String message) {
-            super(message);
+    private void publishEvent(Abonnement abonnement, Forfait forfait, String numeroFacture, EventType eventType) {
+        try {
+            AbonnementEvent event = AbonnementEvent.builder()
+                    .eventType(eventType.name())
+                    .timestamp(java.time.LocalDateTime.now())
+                    .abonnementId(abonnement.getId())
+                    .utilisateurId(abonnement.getUtilisateurId())
+                    .forfaitId(abonnement.getForfaitId())
+                    .forfaitNom(forfait.getNom())
+                    .dateDebut(abonnement.getDateDebut())
+                    .dateFin(abonnement.getDateFin())
+                    .prix(abonnement.getPrix())
+                    .devise(abonnement.getDevise())
+                    .statut(abonnement.getStatut())
+                    .numeroFacture(numeroFacture)
+                    .build();
+
+            kafkaProducerService.publishAbonnementEvent(event);
+        } catch (Exception e) {
+            // Log error but don't fail the transaction
+            log.error("Failed to publish Kafka event for abonnement {}: {}", abonnement.getId(), e.getMessage());
         }
     }
+
 }

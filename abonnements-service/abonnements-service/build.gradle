@@ -25,14 +25,35 @@ repositories {
 }
 
 dependencies {
+	// Spring Boot starters
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// Spring Actuator - Health checks and monitoring
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
+
+	// Micrometer Prometheus - Metrics for production monitoring
+	runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
+	// Swagger/OpenAPI - Interactive API documentation
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
+
+	// Kafka - Event-driven communication
+	implementation 'org.springframework.kafka:spring-kafka'
+
+	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+	// PostgreSQL
 	runtimeOnly 'org.postgresql:postgresql'
+
+	// Testing
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.kafka:spring-kafka-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testRuntimeOnly 'com.h2database:h2'  // In-memory database for tests
 }
 
 tasks.named('test') {

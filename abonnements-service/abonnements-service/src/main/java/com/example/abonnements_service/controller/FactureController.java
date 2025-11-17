@@ -1,6 +1,7 @@
 package com.example.abonnements_service.controller;
 
 import com.example.abonnements_service.dto.FactureResponse;
+import com.example.abonnements_service.exception.ResourceNotFoundException;
 import com.example.abonnements_service.model.StatutFacture;
 import com.example.abonnements_service.service.FactureService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class FactureController {
     @GetMapping("/{id}")
     public FactureResponse getFactureById(@PathVariable UUID id) {
         return factureService.findById(id)
-                .orElseThrow(() -> new FactureService.ResourceNotFoundException("Facture not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture not found with id: " + id));
     }
 
     @GetMapping
@@ -31,7 +32,7 @@ public class FactureController {
     @GetMapping("/abonnement/{abonnementId}")
     public FactureResponse getFactureByAbonnementId(@PathVariable UUID abonnementId) {
         return factureService.findByAbonnementId(abonnementId)
-                .orElseThrow(() -> new FactureService.ResourceNotFoundException("Facture not found for abonnement: " + abonnementId));
+                .orElseThrow(() -> new ResourceNotFoundException("Facture not found for abonnement: " + abonnementId));
     }
 
     @PatchMapping("/{id}/statut")

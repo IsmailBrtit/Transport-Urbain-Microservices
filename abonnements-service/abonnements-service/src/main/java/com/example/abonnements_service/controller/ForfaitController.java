@@ -2,6 +2,7 @@ package com.example.abonnements_service.controller;
 
 import com.example.abonnements_service.dto.ForfaitRequest;
 import com.example.abonnements_service.dto.ForfaitResponse;
+import com.example.abonnements_service.exception.ResourceNotFoundException;
 import com.example.abonnements_service.service.ForfaitService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class ForfaitController {
     @GetMapping("/{id}")
     public ForfaitResponse getForfaitById(@PathVariable UUID id) {
         return forfaitService.findById(id)
-                .orElseThrow(() -> new ForfaitService.ResourceNotFoundException("Forfait not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Forfait not found with id: " + id));
     }
 
     @GetMapping
@@ -40,7 +41,7 @@ public class ForfaitController {
 
     @PutMapping("/{id}")
     public ForfaitResponse updateForfait(@PathVariable UUID id, @Valid @RequestBody ForfaitRequest forfaitRequest) {
-        return forfaitService.updateForfait(id, forfaitRequest);
+        return forfaitService.updateForfait(id, forfaitRequest);//nom duree prix required in body request
     }
 
     @DeleteMapping("/{id}")

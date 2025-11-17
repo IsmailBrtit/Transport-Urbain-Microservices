@@ -2,6 +2,7 @@ package com.example.abonnements_service.service;
 
 import com.example.abonnements_service.dto.ForfaitRequest;
 import com.example.abonnements_service.dto.ForfaitResponse;
+import com.example.abonnements_service.exception.ResourceNotFoundException;
 import com.example.abonnements_service.model.Devise;
 import com.example.abonnements_service.model.Forfait;
 import com.example.abonnements_service.repository.ForfaitRepository;
@@ -166,12 +167,4 @@ public class ForfaitService {
                 .build();
     }
 
-    /**
-     * Custom exception for resource not found
-     */
-    public static class ResourceNotFoundException extends RuntimeException {
-        public ResourceNotFoundException(String message) {
-            super(message);
-        }
-    }
 }
