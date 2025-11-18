@@ -1,0 +1,48 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: user-service
+  datasource:
+    url: jdbc:postgresql://localhost:5432/user-service-db
+    username: myuser
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  security:
+    debug: true
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8180/realms/my-realm
+          jwk-set-uri: http://localhost:8180/realms/my-realm/protocol/openid-connect/certs
+  mvc:
+    log-request-details: true
+
+# Keycloak Admin Configuration for User Registration
+keycloak:
+  admin:
+    server-url: http://localhost:8180
+    realm: my-realm  # Admin realm (usually 'master')
+    client-id: gateway-admin  # Admin client ID
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_CLIENT_SECRET}
+  #    username: # Leave empty when using service account
+  #    password: # Leave empty when using service account
+  registration:
+    default-roles: USER  # Default roles to assign (comma-separated)
+    email-verified: false  # Set to true if you want emails pre-verified
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    org.springframework.web.servlet.DispatcherServlet: TRACE
+    org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
+    org.springframework.security: DEBUG
+    # your package so your controller logs show up
+    Transport_Urbain_Microservices.user_service: DEBUG
