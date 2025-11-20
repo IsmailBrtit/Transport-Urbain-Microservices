@@ -14,4 +14,6 @@ fileignoreconfig:
   checksum: 2b48f877bf63cdd8abd4e5b6a5600ac60c0cc58483b4715cb9b7ed2d30457552
 - filename: user-service/src/main/java/Transport_Urbain_Microservices/user_service/service/UserService.java
   checksum: d5a0bd1eff0ed7e737aac73577c8c4513ecf2a38a14eeeebb1641a5b9cd7da55
+- filename: route-service/mvnw
+  checksum: 3f15afbe498883b0ea6517b5b32e9b68085bc5e74cb192f152f79ca664e32b05
 version: "1.0"
