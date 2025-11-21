@@ -94,6 +94,7 @@ public class RouteService {
         return routes.stream().map(RouteMapper::toDto).toList();
     }
 
+    @Transactional
     public boolean deleteRouteById(Long routeId){
         try{
             routeRepo.deleteById(routeId);
