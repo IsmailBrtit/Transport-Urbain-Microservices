@@ -9,12 +9,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Événement Kafka pour les billets
- * Publié par le service Billets sur le topic "ticket.events"
- *
- * STUB - À implémenter quand BC Billets sera créé
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -22,21 +16,30 @@ import java.util.UUID;
 public class TicketEvent {
 
     private String eventId;
-    private EventType eventType;
+    private String eventType;
     private LocalDateTime timestamp;
+
     private UUID ticketId;
     private UUID utilisateurId;
+
     private String utilisateurEmail;
     private String utilisateurNom;
-    private String ticketType;
-    private BigDecimal montant;
-    private String devise;
-    private LocalDateTime validJusque;
-    private String qrCode;
 
-    public enum EventType {
-        TICKET_PURCHASED,
-        TICKET_VALIDATED,
-        TICKET_EXPIRED
+    private String type;
+    private BigDecimal prix;
+    private String devise;
+    private String qrCode;
+    private LocalDateTime validJusque;
+
+    public boolean isTicketPurchased() {
+        return "TICKET_PURCHASED".equals(eventType);
+    }
+
+    public boolean isTicketValidated() {
+        return "TICKET_VALIDATED".equals(eventType);
+    }
+
+    public boolean isTicketExpired() {
+        return "TICKET_EXPIRED".equals(eventType);
     }
 }

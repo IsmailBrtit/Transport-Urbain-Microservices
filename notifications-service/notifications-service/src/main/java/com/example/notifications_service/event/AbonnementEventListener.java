@@ -1,5 +1,7 @@
 package com.example.notifications_service.event;
 
+import com.example.notifications_service.client.UserServiceClient;
+import com.example.notifications_service.dto.UserDto;
 import com.example.notifications_service.model.Canal;
 import com.example.notifications_service.model.Notification;
 import com.example.notifications_service.service.EmailService;
@@ -9,15 +11,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
-/**
- * Listener Kafka pour les événements d'abonnement
- * Topic: abonnement.events
- * <p>
- * Responsabilité:
- * - Écouter les événements Kafka du service Abonnements
- * - Envoyer des emails de notification
- * - Sauvegarder l'historique des notifications dans la base de données
- */
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -25,13 +18,8 @@ public class AbonnementEventListener {
 
     private final EmailService emailService;
     private final NotificationService notificationService;
+    private final UserServiceClient userServiceClient;
 
-    /**
-     * Écouter tous les événements d'abonnement
-     * <p>
-     * Kafka Consumer Group: notifications-service-group
-     * Topic: abonnement.events
-     */
     @KafkaListener(
             topics = "abonnement.events",
             groupId = "notifications-service-group",
@@ -42,7 +30,8 @@ public class AbonnementEventListener {
                 event.getEventType(), event.getAbonnementId(), event.getEventId());
 
         try {
-            // Router vers le bon handler selon le type d'événement
+            enrichEventWithUserData(event);
+
             switch (event.getEventType()) {
                 case ABONNEMENT_CREATED -> handleAbonnementCreated(event);
                 case ABONNEMENT_RENEWED -> handleAbonnementRenewed(event);
@@ -54,18 +43,33 @@ public class AbonnementEventListener {
             log.error("Erreur lors du traitement de l'événement {}: {}",
                     event.getEventType(), e.getMessage(), e);
 
-            // Sauvegarder la notification avec statut ECHEC
             saveFailedNotification(event, e.getMessage());
         }
     }
 
-    /**
-     * Gérer l'événement ABONNEMENT_CREATED
-     */
+    private void enrichEventWithUserData(AbonnementEvent event) {
+        if (event.getUtilisateurEmail() == null || event.getUtilisateurEmail().isBlank()) {
+            log.info("Email absent dans l'événement, récupération depuis User Service pour utilisateur {}",
+                    event.getUtilisateurId());
+
+            try {
+                UserDto user = userServiceClient.getUserById(event.getUtilisateurId());
+                event.setUtilisateurEmail(user.getEmail());
+                event.setUtilisateurNom(user.getFullName() != null ? user.getFullName() :
+                        user.getFirstName() + " " + user.getLastName());
+
+                log.info("Données utilisateur enrichies: {} ({})",
+                        event.getUtilisateurNom(), event.getUtilisateurEmail());
+            } catch (Exception e) {
+                log.error("Impossible de récupérer les données utilisateur: {}", e.getMessage());
+                throw new RuntimeException("Failed to enrich event with user data: " + e.getMessage(), e);
+            }
+        }
+    }
+
     private void handleAbonnementCreated(AbonnementEvent event) {
         log.info("Traitement de ABONNEMENT_CREATED pour utilisateur {}", event.getUtilisateurId());
 
-        // Créer l'enregistrement de notification
         Notification notification = notificationService.createNotification(
                 event.getUtilisateurId(),
                 "ABONNEMENT_CREATED",
@@ -77,21 +81,14 @@ public class AbonnementEventListener {
         );
 
         try {
-            // Envoyer l'email
             emailService.sendAbonnementCreatedEmail(event);
-
-            // Marquer comme envoyé
             notificationService.markAsSent(notification.getId());
-
         } catch (Exception e) {
             log.error("Échec d'envoi d'email pour ABONNEMENT_CREATED: {}", e.getMessage());
             notificationService.markAsFailed(notification.getId(), e.getMessage());
         }
     }
 
-    /**
-     * Gérer l'événement ABONNEMENT_RENEWED
-     */
     private void handleAbonnementRenewed(AbonnementEvent event) {
         log.info("Traitement de ABONNEMENT_RENEWED pour utilisateur {}", event.getUtilisateurId());
 
@@ -114,9 +111,6 @@ public class AbonnementEventListener {
         }
     }
 
-    /**
-     * Gérer l'événement ABONNEMENT_CANCELED
-     */
     private void handleAbonnementCanceled(AbonnementEvent event) {
         log.info("Traitement de ABONNEMENT_CANCELED pour utilisateur {}", event.getUtilisateurId());
 
@@ -139,9 +133,6 @@ public class AbonnementEventListener {
         }
     }
 
-    /**
-     * Gérer l'événement ABONNEMENT_EXPIRED
-     */
     private void handleAbonnementExpired(AbonnementEvent event) {
         log.info("Traitement de ABONNEMENT_EXPIRED pour utilisateur {}", event.getUtilisateurId());
 
@@ -164,9 +155,6 @@ public class AbonnementEventListener {
         }
     }
 
-    /**
-     * Sauvegarder une notification échouée
-     */
     private void saveFailedNotification(AbonnementEvent event, String errorMessage) {
         try {
             notificationService.createNotification(
@@ -183,9 +171,6 @@ public class AbonnementEventListener {
         }
     }
 
-    /**
-     * Construire le contenu de l'email (pour l'historique)
-     */
     private String buildEmailContent(AbonnementEvent event, String message) {
         return String.format("%s - %s (%s à %s)",
                 message,

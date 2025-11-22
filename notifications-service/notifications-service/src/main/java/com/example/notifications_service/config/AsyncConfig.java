@@ -7,10 +7,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.Executor;
 
-/**
- * Configuration pour l'exécution asynchrone
- * Permet l'envoi d'emails en arrière-plan sans bloquer les listeners Kafka
- */
 @Configuration
 @EnableAsync
 public class AsyncConfig {

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Billet expiré</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #fd7e14 0%, #ffc107 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header .icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #fd7e14;
+        }
+        .details-box {
+            background-color: #fff8e6;
+            border-left: 4px solid #fd7e14;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .details-box h3 {
+            margin-top: 0;
+            color: #fd7e14;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 20px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #666;
+            font-size: 14px;
+        }
+        .expired-icon {
+            color: #fd7e14;
+            font-size: 80px;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Billet expiré</h1>
+        <p>Votre billet n'est plus valide</p>
+    </div>
+
+    <div class="content">
+        <p class="greeting">Bonjour <strong th:text="${nomUtilisateur}">Utilisateur</strong>,</p>
+
+        <p>Nous vous informons que votre billet a expiré et n'est plus utilisable.</p>
+
+
+        <div class="details-box">
+            <h3> Détails du billet expiré</h3>
+
+            <div class="detail-row">
+                <span class="detail-label">N° Billet :</span>
+                <span class="detail-value" th:text="${ticketId}">TICKET-123</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Type :</span>
+                <span class="detail-value" th:text="${typeTicket}">SIMPLE</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Statut :</span>
+                <span class="detail-value" style="color: #fd7e14; font-weight: bold;">EXPIRÉ</span>
+            </div>
+        </div>
+
+        <p><strong>Besoin d'un nouveau billet?</strong></p>
+        <p>Achetez un nouveau billet via notre application ou en station pour continuer à profiter du réseau de transport urbain.</p>
+
+        <p style="text-align: center;">
+            <a href="#" class="cta-button">Acheter un nouveau billet</a>
+        </p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Système de Transport Urbain</strong></p>
+        <p>Pour toute question, contactez-nous à support@urbain-transport.ma</p>
+        <p style="font-size: 12px; color: #999;">
+            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+        </p>
+    </div>
+</div>
+</body>
+</html>

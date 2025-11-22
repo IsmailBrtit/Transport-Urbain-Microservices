@@ -1,6 +1,7 @@
 package com.example.notifications_service.config;
 
 import com.example.notifications_service.event.AbonnementEvent;
+import com.example.notifications_service.event.TicketEvent;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,10 +16,6 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Configuration Kafka Consumer
- * Configure les consommateurs d'événements Kafka
- */
 @Configuration
 @EnableKafka
 public class KafkaConsumerConfig {
@@ -29,9 +26,6 @@ public class KafkaConsumerConfig {
     @Value("${spring.kafka.consumer.group-id}")
     private String groupId;
 
-    /**
-     * Configuration générale du consumer
-     */
     @Bean
     public Map<String, Object> consumerConfigs() {
         Map<String, Object> props = new HashMap<>();
@@ -46,9 +40,6 @@ public class KafkaConsumerConfig {
         return props;
     }
 
-    /**
-     * Consumer Factory pour les événements d'abonnement
-     */
     @Bean
     public ConsumerFactory<String, AbonnementEvent> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(
@@ -58,16 +49,40 @@ public class KafkaConsumerConfig {
         );
     }
 
-    /**
-     * Kafka Listener Container Factory
-     * Utilisé par les @KafkaListener
-     */
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, AbonnementEvent> kafkaListenerContainerFactory() {
         ConcurrentKafkaListenerContainerFactory<String, AbonnementEvent> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
-        factory.setConcurrency(3); // 3 threads pour traiter les messages
+        factory.setConcurrency(3);
+        return factory;
+    }
+
+    @Bean
+    public ConsumerFactory<String, TicketEvent> ticketConsumerFactory() {
+        Map<String, Object> props = new HashMap<>();
+        props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
+        props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
+        props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+        props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
+        props.put(JsonDeserializer.VALUE_DEFAULT_TYPE, TicketEvent.class);
+        props.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaConsumerFactory<>(
+                props,
+                new StringDeserializer(),
+                new JsonDeserializer<>(TicketEvent.class, false)
+        );
+    }
+
+    @Bean
+    public ConcurrentKafkaListenerContainerFactory<String, TicketEvent> ticketKafkaListenerContainerFactory() {
+        ConcurrentKafkaListenerContainerFactory<String, TicketEvent> factory =
+                new ConcurrentKafkaListenerContainerFactory<>();
+        factory.setConsumerFactory(ticketConsumerFactory());
+        factory.setConcurrency(3);
         return factory;
     }
 }

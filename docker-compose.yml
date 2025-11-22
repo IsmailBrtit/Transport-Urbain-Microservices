@@ -146,10 +146,118 @@ services:
       retries: 3
       start_period: 60s
 
+  postgres-billets:
+    container_name: postgres-billets
+    image: postgres:14
+    environment:
+      POSTGRES_DB: billets_db
+      POSTGRES_USER: billets_user
+      POSTGRES_PASSWORD: billets_password
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_billets_data:/data/postgres
+    ports:
+      - "5439:5432"
+    restart: unless-stopped
+    networks:
+      - urbain-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U billets_user -d billets_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
+  billets-service:
+    build:
+      context: ./billets-service/billets-service
+      dockerfile: Dockerfile
+      network: host
+    container_name: billets-service
+    ports:
+      - "8084:8084"
+    depends_on:
+      postgres-billets:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-billets:5432/billets_db
+      SPRING_DATASOURCE_USERNAME: billets_user
+      SPRING_DATASOURCE_PASSWORD: billets_password
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - urbain-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  postgres-users:
+    container_name: postgres-users
+    image: postgres:14
+    environment:
+      POSTGRES_DB: user_service_db
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_users_data:/data/postgres
+    ports:
+      - "5434:5432"
+    restart: unless-stopped
+    networks:
+      - urbain-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U myuser -d user_service_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+      network: host
+    container_name: user-service
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres-users:
+        condition: service_healthy
+    environment:
+      # Database
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/user_service_db
+      SPRING_DATASOURCE_USERNAME: myuser
+      SPRING_DATASOURCE_PASSWORD: mypassword
+      # Keycloak (à adapter selon votre config)
+      KEYCLOAK_ADMIN_SERVER_URL: ${KEYCLOAK_ADMIN_SERVER_URL:-http://keycloak:8180}
+      KEYCLOAK_ADMIN_REALM: ${KEYCLOAK_ADMIN_REALM:-my-realm}
+      KEYCLOAK_ADMIN_CLIENT_ID: ${KEYCLOAK_ADMIN_CLIENT_ID:-gateway-admin}
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_CLIENT_SECRET}
+    networks:
+      - urbain-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
 volumes:
   postgres_abonnements_data:
     driver: local
   postgres_notifications_data:
+    driver: local
+  postgres_billets_data:
+    driver: local
+  postgres_users_data:
     driver: local
 
 networks:

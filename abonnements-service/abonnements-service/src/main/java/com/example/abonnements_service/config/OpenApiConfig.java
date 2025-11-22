@@ -10,10 +10,6 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-/**
- * OpenAPI/Swagger configuration for automatic API documentation
- * Access documentation at: http://localhost:8080/swagger-ui.html
- */
 @Configuration
 public class OpenApiConfig {
 

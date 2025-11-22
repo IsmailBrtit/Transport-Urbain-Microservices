@@ -21,25 +21,25 @@ public class Facture {
     private UUID id;
 
     @Column(nullable = false)
-    private UUID abonnementId;  // Reference to Abonnement
+    private UUID abonnementId;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal montant;  // Invoice amount
+    private BigDecimal montant;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private Devise devise;  // Currency enum for type safety
+    private Devise devise;
 
     @Column(nullable = false, unique = true)
-    private String numeroFacture;  // Invoice number (e.g., FAC-2025-00123)
+    private String numeroFacture;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private StatutFacture statut = StatutFacture.EN_ATTENTE;  // Default to PENDING
+    private StatutFacture statut = StatutFacture.EN_ATTENTE;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime emissLe;  // Issue timestamp
+    private LocalDateTime emissLe;
 
     @PrePersist
     protected void onCreate() {
@@ -50,7 +50,6 @@ public class Facture {
     }
 
     private String genererNumeroFacture() {
-        // Format: FAC-YYYY-NNNNN
         String annee = String.valueOf(emissLe != null ? emissLe.getYear() : LocalDateTime.now().getYear());
         String numero = String.format("%05d", new Random().nextInt(99999) + 1);
         return "FAC-" + annee + "-" + numero;

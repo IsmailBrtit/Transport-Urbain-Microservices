@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import Transport_Urbain_Microservices.user_service.service.UserService;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping
@@ -35,7 +36,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             Authentication authentication) {
         UserDto user = userService.getUserById(id, authentication);
         return ResponseEntity.ok(user);
@@ -60,7 +61,7 @@ public class UserController {
 
     @GetMapping("/{id}/disable")
     public ResponseEntity<UserDto> disableUser(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             Authentication authentication) {
         UserDto disabledUser = userService.disableUser(id, authentication);
         return ResponseEntity.ok(disabledUser);
@@ -69,7 +70,7 @@ public class UserController {
     @GetMapping("/{id}/enable")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDto> enableUser(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             Authentication authentication) {
         UserDto enabledUser = userService.enableUser(id, authentication);
         return ResponseEntity.ok(enabledUser);

@@ -8,12 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Événement Kafka pour les utilisateurs
- * Publié par le service Utilisateurs sur le topic "user.events"
- *
- * STUB - À implémenter quand BC Utilisateurs sera créé
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

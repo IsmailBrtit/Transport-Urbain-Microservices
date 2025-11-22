@@ -7,6 +7,8 @@ COPY gradle gradle
 COPY build.gradle .
 COPY settings.gradle .
 
+RUN sed -i 's/\r$//' gradlew && chmod +x gradlew
+
 RUN ./gradlew dependencies --no-daemon || true
 
 COPY src src

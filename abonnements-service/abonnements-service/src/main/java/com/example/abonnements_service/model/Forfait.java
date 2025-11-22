@@ -20,33 +20,30 @@ public class Forfait {
     private UUID id;
 
     @Column(nullable = false, unique = true)
-    private String nom;  // e.g., "Mensuel Standard", "Annuel Premium"
+    private String nom;
 
     @Column(nullable = false)
-    private String duree;  // e.g., "30 jours", "90 jours", "365 jours"
+    private String duree;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal prix;  // Current plan price (can change over time)
+    private BigDecimal prix;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private Devise devise = Devise.MAD;  // Currency (MAD by default for Morocco)
+    private Devise devise = Devise.MAD;
 
     @Column(length = 500)
-    private String description;  // Plan details and features
+    private String description;
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean actif = true;  // Is plan available for purchase?
+    private Boolean actif = true;
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime createLe;  // Creation timestamp
+    private LocalDateTime createLe;
 
     @PrePersist
-//    protected void onCreate() {
-//        createLe = LocalDateTime.now()+2;
-//    }
     protected void onCreate() {
         createLe = LocalDateTime.now().plusHours(1);
     }

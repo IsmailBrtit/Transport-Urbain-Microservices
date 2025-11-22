@@ -4,9 +4,11 @@ import Transport_Urbain_Microservices.user_service.entity.UserRole;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.UUID;
+
 @Getter
 @Setter
 public class ChangeRoleDto {
-    Long id;
+    UUID id;
     UserRole newRole;
 }

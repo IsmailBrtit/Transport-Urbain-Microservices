@@ -10,9 +10,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * DTO pour les réponses des notifications
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

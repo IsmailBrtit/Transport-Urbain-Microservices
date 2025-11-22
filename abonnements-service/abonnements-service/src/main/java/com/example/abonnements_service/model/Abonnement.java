@@ -3,10 +3,8 @@ package com.example.abonnements_service.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.lang.annotation.Documented;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -18,7 +16,7 @@ import java.util.UUID;
 @Builder
 public class Abonnement {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID) // Auto-increment strategy
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
     @Column(nullable = false)

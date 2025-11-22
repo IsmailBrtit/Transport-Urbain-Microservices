@@ -22,17 +22,35 @@ import java.util.UUID;
 @AllArgsConstructor
 public class AbonnementEvent {
 
+    // Event metadata
+    private String eventId;  // Unique event ID for idempotence (UUID)
     private String eventType;  // CREATED, RENEWED, CANCELED, EXPIRED
     private LocalDateTime timestamp;
+
+    // Abonnement data
     private UUID abonnementId;
     private UUID utilisateurId;
+
+    // ✅ Event-Carried State Transfer: User data (from User Service)
+    private String utilisateurEmail;  // Email for notifications
+    private String utilisateurNom;    // Full name for personalization
+
+    // Forfait data
     private UUID forfaitId;
     private String forfaitNom;
+
+    // Subscription dates
     private LocalDate dateDebut;
     private LocalDate dateFin;
+
+    // Price snapshot
     private BigDecimal prix;
     private Devise devise;
+
+    // Status
     private StatutAbonnement statut;
+
+    // Invoice
     private String numeroFacture;  // Associated invoice number
 
     // For analytics

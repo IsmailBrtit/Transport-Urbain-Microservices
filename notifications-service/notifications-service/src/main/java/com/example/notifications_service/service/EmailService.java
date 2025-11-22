@@ -1,6 +1,7 @@
 package com.example.notifications_service.service;
 
 import com.example.notifications_service.event.AbonnementEvent;
+import com.example.notifications_service.event.TicketEvent;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -13,16 +14,16 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
 
+import org.springframework.core.io.ByteArrayResource;
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Service d'envoi d'emails
- * Utilise JavaMailSender (Spring Boot) et Thymeleaf pour les templates HTML
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -36,14 +37,6 @@ public class EmailService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    /**
-     * Envoyer un email avec template Thymeleaf
-     *
-     * @param to           Adresse email destinataire
-     * @param subject      Sujet de l'email
-     * @param templateName Nom du template Thymeleaf (sans .html)
-     * @param variables    Variables à injecter dans le template
-     */
     @Async
     public void sendEmail(String to, String subject, String templateName, Map<String, Object> variables) {
         try {
@@ -56,7 +49,6 @@ public class EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
 
-            // Générer le contenu HTML avec Thymeleaf
             Context context = new Context();
             context.setVariables(variables);
             String htmlContent = templateEngine.process("email/" + templateName, context);
@@ -72,9 +64,6 @@ public class EmailService {
         }
     }
 
-    /**
-     * Envoyer un email de confirmation de création d'abonnement
-     */
     @Async
     public void sendAbonnementCreatedEmail(AbonnementEvent event) {
         log.info("Envoi d'email de confirmation d'abonnement créé pour utilisateur {}", event.getUtilisateurId());
@@ -95,9 +84,6 @@ public class EmailService {
         );
     }
 
-    /**
-     * Envoyer un email de renouvellement d'abonnement
-     */
     @Async
     public void sendAbonnementRenewedEmail(AbonnementEvent event) {
         log.info("Envoi d'email de renouvellement d'abonnement pour utilisateur {}", event.getUtilisateurId());
@@ -118,9 +104,6 @@ public class EmailService {
         );
     }
 
-    /**
-     * Envoyer un email d'annulation d'abonnement
-     */
     @Async
     public void sendAbonnementCanceledEmail(AbonnementEvent event) {
         log.info("Envoi d'email d'annulation d'abonnement pour utilisateur {}", event.getUtilisateurId());
@@ -138,9 +121,6 @@ public class EmailService {
         );
     }
 
-    /**
-     * Envoyer un email d'expiration d'abonnement
-     */
     @Async
     public void sendAbonnementExpiredEmail(AbonnementEvent event) {
         log.info("Envoi d'email d'expiration d'abonnement pour utilisateur {}", event.getUtilisateurId());
@@ -158,9 +138,6 @@ public class EmailService {
         );
     }
 
-    /**
-     * Envoyer un email de test
-     */
     @Async
     public void sendTestEmail(String to, String nom, String message) {
         log.info("Envoi d'email de test à {}", to);
@@ -177,18 +154,98 @@ public class EmailService {
         );
     }
 
-    // ==================== Helper Methods ====================
+    @Async
+    public void sendTicketPurchasedEmail(TicketEvent event) {
+        log.info("Envoi d'email d'achat de billet pour utilisateur {}", event.getUtilisateurId());
 
-    /**
-     * Formater une date au format français
-     */
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(fromAddress);
+            helper.setTo(event.getUtilisateurEmail());
+            helper.setSubject("Confirmation d'achat de billet - Urbain Transport");
+
+            Map<String, Object> variables = new HashMap<>();
+            variables.put("nomUtilisateur", event.getUtilisateurNom());
+            variables.put("ticketId", event.getTicketId().toString());
+            variables.put("typeTicket", event.getType());
+            variables.put("prix", formatMontant(event.getPrix(), event.getDevise()));
+            variables.put("validJusque", formatDateTime(event.getValidJusque()));
+
+            boolean hasQrCode = event.getQrCode() != null && event.getQrCode().contains("base64,");
+            variables.put("hasQrCode", hasQrCode);
+            if (hasQrCode) {
+                variables.put("qrCodeCid", "qrcode");
+            }
+
+            Context context = new Context();
+            context.setVariables(variables);
+            String htmlContent = templateEngine.process("email/ticket/purchased", context);
+            helper.setText(htmlContent, true);
+
+            if (hasQrCode) {
+                String base64Data = event.getQrCode().split(",")[1];
+                byte[] imageBytes = Base64.getDecoder().decode(base64Data);
+                helper.addInline("qrcode", new ByteArrayResource(imageBytes), "image/png");
+                log.info("QR code embarqué dans l'email");
+            }
+
+            mailSender.send(message);
+            log.info("Email envoyé avec succès à {}", event.getUtilisateurEmail());
+
+        } catch (MessagingException e) {
+            log.error("Erreur lors de l'envoi d'email: {}", e.getMessage(), e);
+            throw new RuntimeException("Échec d'envoi d'email: " + e.getMessage(), e);
+        }
+    }
+
+    @Async
+    public void sendTicketValidatedEmail(TicketEvent event) {
+        log.info("Envoi d'email de validation de billet pour utilisateur {}", event.getUtilisateurId());
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("nomUtilisateur", event.getUtilisateurNom());
+        variables.put("ticketId", event.getTicketId().toString());
+        variables.put("typeTicket", event.getType());
+        variables.put("validJusque", formatDateTime(event.getValidJusque()));
+
+        sendEmail(
+                event.getUtilisateurEmail(),
+                "Validation de votre billet - Urbain Transport",
+                "ticket/validated",
+                variables
+        );
+    }
+
+    @Async
+    public void sendTicketExpiredEmail(TicketEvent event) {
+        log.info("Envoi d'email d'expiration de billet pour utilisateur {}", event.getUtilisateurId());
+
+        Map<String, Object> variables = new HashMap<>();
+        variables.put("nomUtilisateur", event.getUtilisateurNom());
+        variables.put("ticketId", event.getTicketId().toString());
+        variables.put("typeTicket", event.getType());
+
+        sendEmail(
+                event.getUtilisateurEmail(),
+                "Votre billet a expiré - Urbain Transport",
+                "ticket/expired",
+                variables
+        );
+    }
+
     private String formatDate(LocalDate date) {
         return date != null ? date.format(DATE_FORMATTER) : "N/A";
     }
 
-    /**
-     * Formater un montant avec devise
-     */
+    private String formatDateTime(LocalDateTime dateTime) {
+        if (dateTime == null) {
+            return "N/A";
+        }
+        return dateTime.format(DateTimeFormatter.ofPattern("dd/MM/yyyy à HH:mm"));
+    }
+
     private String formatMontant(BigDecimal montant, String devise) {
         if (montant == null) {
             return "N/A";

@@ -7,9 +7,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/**
- * DTO pour tester l'envoi d'emails
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

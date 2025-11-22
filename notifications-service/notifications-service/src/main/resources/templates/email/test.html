@@ -79,51 +79,16 @@
 <body>
 <div class="container">
     <div class="header">
-        <div class="icon">📧</div>
         <h1>Email de Test</h1>
-        <p>Système de Notifications Urbain</p>
     </div>
 
     <div class="content">
         <p class="greeting">Bonjour <strong th:text="${nom}">Utilisateur</strong>,</p>
 
-        <div class="success-badge">✓ Configuration réussie!</div>
-
-        <div class="message-box">
-            <p th:text="${message}">Si vous recevez cet email, cela signifie que le service de notifications est correctement configuré.</p>
-        </div>
-
-        <div class="info-list">
-            <h3>🎯 Service de Notifications Opérationnel</h3>
-            <p>Le système de notifications Urbain est prêt à envoyer:</p>
-            <ul>
-                <li>✉️ Confirmations d'abonnement</li>
-                <li>🔄 Notifications de renouvellement</li>
-                <li>❌ Alertes d'annulation</li>
-                <li>⏰ Rappels d'expiration</li>
-                <li>🎫 Confirmations d'achat de tickets (à venir)</li>
-                <li>🚌 Alertes de perturbation (à venir)</li>
-            </ul>
-        </div>
-
-        <p><strong>Fonctionnalités du service :</strong></p>
-        <ul>
-            <li>📨 <strong>JavaMailSender</strong> - Envoi d'emails via Gmail SMTP</li>
-            <li>🎨 <strong>Thymeleaf</strong> - Templates HTML personnalisables</li>
-            <li>⚡ <strong>Async</strong> - Envoi asynchrone sans bloquer le système</li>
-            <li>📊 <strong>Kafka</strong> - Consommation d'événements en temps réel</li>
-            <li>💾 <strong>PostgreSQL</strong> - Historique des notifications envoyées</li>
-        </ul>
-
-        <p style="background-color: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107;">
-            ⚠️ <strong>Note :</strong> Ceci est un email de test. Les utilisateurs réels ne recevront que les notifications liées à leurs actions (abonnements, tickets, etc.).
-        </p>
     </div>
 
     <div class="footer">
-        <p><strong>Système de Transport Urbain Urbain</strong></p>
-        <p>Service de Notifications - Version 1.0.0</p>
-        <p>Équipe: Hamza Souda, Ismail BRTIT, Yasser Nadifi, Souhail El Bouazzaoui</p>
+        <p><strong>Système de Transport Urbain </strong></p>
         <p style="font-size: 12px; color: #999; margin-top: 15px;">
             Cet email a été envoyé automatiquement, merci de ne pas y répondre.
         </p>

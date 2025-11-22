@@ -26,20 +26,15 @@ public class FactureService {
     private final FactureRepository factureRepository;
     private final AbonnementRepository abonnementRepository;
 
-    /**
-     * Generate facture for an abonnement
-     */
     public FactureResponse genererFacture(Abonnement abonnement) {
         log.info("Generating facture for abonnement: {}", abonnement.getId());
 
-        // Check if facture already exists
         Optional<Facture> existingFacture = factureRepository.findByAbonnementId(abonnement.getId());
         if (existingFacture.isPresent()) {
             log.warn("Facture already exists for abonnement: {}", abonnement.getId());
             return mapToResponse(existingFacture.get());
         }
 
-        // Create facture
         Facture facture = Facture.builder()
                 .abonnementId(abonnement.getId())
                 .montant(abonnement.getPrix())
@@ -53,9 +48,6 @@ public class FactureService {
         return mapToResponse(saved);
     }
 
-    /**
-     * Get all factures
-     */
     @Transactional(readOnly = true)
     public List<FactureResponse> findAll() {
         log.info("Fetching all factures");
@@ -65,9 +57,6 @@ public class FactureService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Find facture by ID
-     */
     @Transactional(readOnly = true)
     public Optional<FactureResponse> findById(UUID id) {
         log.info("Fetching facture with id: {}", id);
@@ -75,9 +64,6 @@ public class FactureService {
                 .map(this::mapToResponse);
     }
 
-    /**
-     * Find facture by abonnement ID
-     */
     @Transactional(readOnly = true)
     public Optional<FactureResponse> findByAbonnementId(UUID abonnementId) {
         log.info("Fetching facture for abonnement: {}", abonnementId);
@@ -85,9 +71,6 @@ public class FactureService {
                 .map(this::mapToResponse);
     }
 
-    /**
-     * Get factures for multiple abonnements (for user's all invoices)
-     */
     @Transactional(readOnly = true)
     public List<FactureResponse> findByAbonnementIds(List<UUID> abonnementIds) {
         log.info("Fetching factures for {} abonnements", abonnementIds.size());
@@ -97,9 +80,6 @@ public class FactureService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Update facture status (e.g., mark as paid)
-     */
     public FactureResponse updateStatut(UUID id, StatutFacture nouveauStatut) {
         log.info("Updating facture {} status to: {}", id, nouveauStatut);
 
@@ -113,9 +93,6 @@ public class FactureService {
         return mapToResponse(updated);
     }
 
-    /**
-     * Map entity to response DTO
-     */
     private FactureResponse mapToResponse(Facture facture) {
         return FactureResponse.builder()
                 .id(facture.getId())
