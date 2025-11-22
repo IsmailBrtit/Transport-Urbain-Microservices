@@ -12,6 +12,30 @@
           </set>
         </option>
       </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/billets-service" />
+        <option name="gradleJvm" value="temurin-21" />
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/billets-service/billets-service" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/billets-service/billets-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/notifications-service" />
+        <option name="gradleJvm" value="temurin-21" />
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/notifications-service/notifications-service" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/notifications-service/notifications-service" />
+          </set>
+        </option>
+      </GradleProjectSettings>
     </option>
   </component>
 </project>

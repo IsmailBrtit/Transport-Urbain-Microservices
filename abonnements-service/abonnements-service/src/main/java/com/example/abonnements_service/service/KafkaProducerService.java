@@ -10,10 +10,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 
-/**
- * Service for publishing events to Kafka
- * Handles asynchronous event publishing with error handling
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -21,12 +17,8 @@ public class KafkaProducerService {
 
     private final KafkaTemplate<String, AbonnementEvent> kafkaTemplate;
 
-    /**
-     * Publish abonnement event to Kafka
-     * Uses utilisateurId as partition key for ordering guarantees (all events for same user go to same partition)
-     */
     public void publishAbonnementEvent(AbonnementEvent event) {
-        String key = event.getUtilisateurId().toString();  // Partition key
+        String key = event.getUtilisateurId().toString();
         String topic = KafkaTopicConfig.ABONNEMENT_EVENTS_TOPIC;
 
         log.info("Publishing event {} for user {} to Kafka topic {}",

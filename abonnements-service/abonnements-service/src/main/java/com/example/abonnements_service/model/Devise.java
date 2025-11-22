@@ -1,9 +1,5 @@
 package com.example.abonnements_service.model;
 
-/**
- * Enum for supported currencies
- * MAD is the primary currency for Moroccan urban transport
- */
 public enum Devise {
     MAD("Dirham Marocain", "MAD"),
     EUR("Euro", "€"),

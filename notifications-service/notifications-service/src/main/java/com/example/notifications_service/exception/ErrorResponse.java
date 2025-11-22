@@ -8,9 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Map;
 
-/**
- * Réponse d'erreur standardisée pour toutes les exceptions
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

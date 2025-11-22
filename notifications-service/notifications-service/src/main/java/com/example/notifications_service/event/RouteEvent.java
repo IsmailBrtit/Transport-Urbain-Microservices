@@ -8,12 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Événement Kafka pour les trajets et perturbations
- * Publié par le service Trajets sur le topic "route.events"
- *
- * STUB - À implémenter quand BC Trajets sera créé
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -19,10 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * Contrôleur REST pour la gestion des notifications
- * Base path: /api/v1/notifications
- */
 @RestController
 @RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
@@ -33,9 +29,6 @@ public class NotificationController {
     private final NotificationService notificationService;
     private final EmailService emailService;
 
-    /**
-     * Récupérer toutes les notifications
-     */
     @GetMapping
     @Operation(summary = "Liste toutes les notifications")
     public ResponseEntity<List<NotificationResponse>> getAllNotifications() {
@@ -44,9 +37,6 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    /**
-     * Récupérer une notification par ID
-     */
     @GetMapping("/{id}")
     @Operation(summary = "Récupère une notification par son ID")
     public ResponseEntity<NotificationResponse> getNotificationById(@PathVariable UUID id) {
@@ -55,9 +45,6 @@ public class NotificationController {
         return ResponseEntity.ok(notification);
     }
 
-    /**
-     * Récupérer toutes les notifications d'un utilisateur
-     */
     @GetMapping("/user/{userId}")
     @Operation(summary = "Récupère toutes les notifications d'un utilisateur")
     public ResponseEntity<List<NotificationResponse>> getNotificationsByUserId(@PathVariable UUID userId) {
@@ -66,9 +53,6 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    /**
-     * Récupérer les notifications par type
-     */
     @GetMapping("/type/{type}")
     @Operation(summary = "Récupère les notifications par type")
     public ResponseEntity<List<NotificationResponse>> getNotificationsByType(@PathVariable String type) {
@@ -77,9 +61,6 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    /**
-     * Récupérer les notifications par statut
-     */
     @GetMapping("/statut/{statut}")
     @Operation(summary = "Récupère les notifications par statut")
     public ResponseEntity<List<NotificationResponse>> getNotificationsByStatut(@PathVariable StatutNotification statut) {
@@ -88,9 +69,6 @@ public class NotificationController {
         return ResponseEntity.ok(notifications);
     }
 
-    /**
-     * Statistiques des notifications
-     */
     @GetMapping("/stats")
     @Operation(summary = "Récupère les statistiques des notifications")
     public ResponseEntity<Map<String, Long>> getNotificationStats() {
@@ -105,9 +83,6 @@ public class NotificationController {
         return ResponseEntity.ok(stats);
     }
 
-    /**
-     * Envoyer un email de test
-     */
     @PostMapping("/test")
     @Operation(summary = "Envoie un email de test")
     public ResponseEntity<Map<String, String>> sendTestEmail(@Valid @RequestBody TestEmailRequest request) {

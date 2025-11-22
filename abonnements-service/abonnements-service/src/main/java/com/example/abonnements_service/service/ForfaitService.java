@@ -24,9 +24,6 @@ public class ForfaitService {
 
     private final ForfaitRepository forfaitRepository;
 
-    /**
-     * Get all forfaits
-     */
     @Transactional(readOnly = true)
     public List<ForfaitResponse> findAll() {
         log.info("Fetching all forfaits");
@@ -36,9 +33,6 @@ public class ForfaitService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Get all active forfaits
-     */
     @Transactional(readOnly = true)
     public List<ForfaitResponse> findAllActive() {
         log.info("Fetching all active forfaits");
@@ -48,9 +42,6 @@ public class ForfaitService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Find forfait by ID
-     */
     @Transactional(readOnly = true)
     public Optional<ForfaitResponse> findById(UUID id) {
         log.info("Fetching forfait with id: {}", id);
@@ -58,27 +49,19 @@ public class ForfaitService {
                 .map(this::mapToResponse);
     }
 
-    /**
-     * Get Forfait entity by ID (for internal use)
-     */
     @Transactional(readOnly = true)
     public Forfait getForfaitEntityById(UUID id) {
         return forfaitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forfait not found with id: " + id));
     }
 
-    /**
-     * Create new forfait
-     */
     public ForfaitResponse createForfait(ForfaitRequest request) {
         log.info("Creating new forfait: {}", request.getNom());
 
-        // Check if forfait with same name already exists
         if (forfaitRepository.existsByNom(request.getNom())) {
             throw new IllegalArgumentException("Forfait with name '" + request.getNom() + "' already exists");
         }
 
-        // Build entity
         Forfait forfait = Forfait.builder()
                 .nom(request.getNom())
                 .duree(request.getDuree())
@@ -88,23 +71,18 @@ public class ForfaitService {
                 .actif(request.getActif() != null ? request.getActif() : true)
                 .build();
 
-        // Save
         Forfait saved = forfaitRepository.save(forfait);
         log.info("Forfait created with id: {}", saved.getId());
 
         return mapToResponse(saved);
     }
 
-    /**
-     * Update existing forfait
-     */
     public ForfaitResponse updateForfait(UUID id, ForfaitRequest request) {
         log.info("Updating forfait with id: {}", id);
 
         Forfait forfait = forfaitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forfait not found with id: " + id));
 
-        // Check if name is being changed and if new name already exists
         if (request.getNom() != null && !request.getNom().equals(forfait.getNom())) {
             if (forfaitRepository.existsByNom(request.getNom())) {
                 throw new IllegalArgumentException("Forfait with name '" + request.getNom() + "' already exists");
@@ -112,7 +90,6 @@ public class ForfaitService {
             forfait.setNom(request.getNom());
         }
 
-        // Update fields
         if (request.getDuree() != null) {
             forfait.setDuree(request.getDuree());
         }
@@ -135,25 +112,18 @@ public class ForfaitService {
         return mapToResponse(updated);
     }
 
-    /**
-     * Delete forfait (soft delete by setting actif=false)
-     */
     public void deleteForfait(UUID id) {
         log.info("Deactivating forfait with id: {}", id);
 
         Forfait forfait = forfaitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Forfait not found with id: " + id));
 
-        // Soft delete - set actif to false
         forfait.setActif(false);
         forfaitRepository.save(forfait);
 
         log.info("Forfait deactivated: {}", id);
     }
 
-    /**
-     * Map entity to response DTO
-     */
     private ForfaitResponse mapToResponse(Forfait forfait) {
         return ForfaitResponse.builder()
                 .id(forfait.getId())

@@ -15,10 +15,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/**
- * Service de gestion des notifications
- * Responsabilité: CRUD et business logic pour les notifications
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -26,9 +22,6 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
 
-    /**
-     * Créer et sauvegarder une notification
-     */
     @Transactional
     public Notification createNotification(
             UUID utilisateurId,
@@ -39,7 +32,6 @@ public class NotificationService {
             String contenu,
             String eventId
     ) {
-        // Vérifier si une notification existe déjà pour cet event (idempotence)
         if (eventId != null && notificationRepository.existsByEventId(eventId)) {
             log.warn("Notification déjà existante pour eventId: {}. Ignoré pour éviter les doublons.", eventId);
             return notificationRepository.findByEventId(eventId).orElseThrow();
@@ -62,9 +54,6 @@ public class NotificationService {
         return saved;
     }
 
-    /**
-     * Marquer une notification comme envoyée
-     */
     @Transactional
     public void markAsSent(UUID notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
@@ -76,9 +65,6 @@ public class NotificationService {
         log.info("Notification {} marquée comme envoyée", notificationId);
     }
 
-    /**
-     * Marquer une notification comme échouée
-     */
     @Transactional
     public void markAsFailed(UUID notificationId, String errorMessage) {
         Notification notification = notificationRepository.findById(notificationId)
@@ -90,9 +76,6 @@ public class NotificationService {
         log.error("Notification {} marquée comme échouée: {}", notificationId, errorMessage);
     }
 
-    /**
-     * Récupérer toutes les notifications
-     */
     public List<NotificationResponse> findAll() {
         log.debug("Récupération de toutes les notifications");
         return notificationRepository.findAll().stream()
@@ -100,9 +83,6 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Récupérer une notification par ID
-     */
     public NotificationResponse findById(UUID id) {
         log.debug("Récupération de la notification avec ID: {}", id);
         Notification notification = notificationRepository.findById(id)
@@ -110,9 +90,6 @@ public class NotificationService {
         return mapToResponse(notification);
     }
 
-    /**
-     * Récupérer toutes les notifications d'un utilisateur
-     */
     public List<NotificationResponse> findByUtilisateurId(UUID utilisateurId) {
         log.debug("Récupération des notifications pour utilisateur: {}", utilisateurId);
         return notificationRepository.findByUtilisateurIdOrderByCreateLeDesc(utilisateurId).stream()
@@ -120,9 +97,6 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Récupérer les notifications par type
-     */
     public List<NotificationResponse> findByType(String type) {
         log.debug("Récupération des notifications de type: {}", type);
         return notificationRepository.findByType(type).stream()
@@ -130,9 +104,6 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Récupérer les notifications par statut
-     */
     public List<NotificationResponse> findByStatut(StatutNotification statut) {
         log.debug("Récupération des notifications avec statut: {}", statut);
         return notificationRepository.findByStatut(statut).stream()
@@ -140,16 +111,10 @@ public class NotificationService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Compter les notifications par statut
-     */
     public long countByStatut(StatutNotification statut) {
         return notificationRepository.countByStatut(statut);
     }
 
-    /**
-     * Mapper une entité Notification vers NotificationResponse DTO
-     */
     private NotificationResponse mapToResponse(Notification notification) {
         return NotificationResponse.builder()
                 .id(notification.getId())

@@ -1,0 +1,17 @@
+
+fileignoreconfig:
+- filename: gateway-service/mvnw
+  checksum: fa4b996cbc44fadbbdddab5cdd9786e3260d49e994c6b8b3a1ce5fda47817537
+- filename: user-service/src/main/java/projet_nassar_microservice/user_service/service/JwtService.java
+  checksum: 888ed568ab18c029c3018b2c627c40f2a31a3798a1de5deefc3edaa55a23d4fa
+- filename: auth-test-service/mvnw
+  checksum: cac98a085910d0abf1315a179777ec5d30d5d849ece3423abe4eddbbda30927a
+- filename: gateway-service/src/main/java/Transport_Urbain_Microservices/gateway_service/service/UserRegistrationService.java
+  checksum: f2af21b1e6b89523f9cd7d7b04aef047e29fa11796e50427a2339310e8adb549
+- filename: gateway-service/src/main/resources/application.yaml
+  checksum: 5e501f5a78f4f5ecf46058047c2b9596bf6d0fbf0e30e7a3b8158bb2aa3ef901
+- filename: user-service/src/main/resources/application.yaml
+  checksum: 2b48f877bf63cdd8abd4e5b6a5600ac60c0cc58483b4715cb9b7ed2d30457552
+- filename: user-service/src/main/java/Transport_Urbain_Microservices/user_service/service/UserService.java
+  checksum: d5a0bd1eff0ed7e737aac73577c8c4513ecf2a38a14eeeebb1641a5b9cd7da55
+version: "1.0"

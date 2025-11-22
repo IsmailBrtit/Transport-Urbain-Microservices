@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmation d'achat de billet</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #00b894 0%, #00cec9 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header .icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #00b894;
+        }
+        .details-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #00b894;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .details-box h3 {
+            margin-top: 0;
+            color: #00b894;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .qr-code-box {
+            text-align: center;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .qr-code-box img {
+            max-width: 200px;
+            border: 2px solid #00b894;
+            border-radius: 10px;
+        }
+        .qr-code-box p {
+            color: #666;
+            font-size: 14px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #666;
+            font-size: 14px;
+        }
+        .success-icon {
+            color: #28a745;
+            font-size: 60px;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>Billet acheté avec succès!</h1>
+        <p>Votre billet est prêt à être utilisé</p>
+    </div>
+
+    <div class="content">
+        <p class="greeting">Bonjour <strong th:text="${nomUtilisateur}">Utilisateur</strong>,</p>
+
+        <p>Votre achat de billet a été confirmé avec succès. Voici les détails de votre billet :</p>
+
+        <div class="success-icon">✓</div>
+
+        <div class="details-box">
+            <h3> Détails de votre billet</h3>
+
+            <div class="detail-row">
+                <span class="detail-label">N° Billet :</span>
+                <span class="detail-value" th:text="${ticketId}">TICKET-123</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Type :</span>
+                <span class="detail-value" th:text="${typeTicket}">SIMPLE</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Prix :</span>
+                <span class="detail-value price" th:text="${prix}">5.00 DH</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Valide jusqu'au :</span>
+                <span class="detail-value" th:text="${validJusque}">20/11/2025 à 14:00</span>
+            </div>
+        </div>
+
+        <div class="qr-code-box" th:if="${hasQrCode}">
+            <h3>Votre QR Code</h3>
+            <img th:src="'cid:' + ${qrCodeCid}" alt="QR Code du billet" style="width: 200px; height: 200px;"/>
+            <p>Présentez ce QR Code au contrôleur pour valider votre billet</p>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <p><strong>Système de Transport Urbain</strong></p>
+        <p>Pour toute question, contactez-nous à support@urbain-transport.ma</p>
+        <p style="font-size: 12px; color: #999;">
+            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+        </p>
+    </div>
+</div>
+</body>
+</html>

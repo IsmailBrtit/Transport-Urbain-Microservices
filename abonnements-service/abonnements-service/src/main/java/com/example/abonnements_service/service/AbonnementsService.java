@@ -30,10 +30,8 @@ public class AbonnementsService {
     private final ForfaitService forfaitService;
     private final FactureService factureService;
     private final KafkaProducerService kafkaProducerService;
+    private final com.example.abonnements_service.client.UserServiceClient userServiceClient;
 
-    /**
-     * Get all subscriptions
-     */
     @Transactional(readOnly = true)
     public List<AbonnementResponse> findAll() {
         log.info("Fetching all subscriptions");
@@ -43,9 +41,6 @@ public class AbonnementsService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Find subscription by ID
-     */
     @Transactional(readOnly = true)
     public Optional<AbonnementResponse> findById(UUID id) {
         log.info("Fetching subscription with id: {}", id);
@@ -53,78 +48,66 @@ public class AbonnementsService {
                 .map(this::mapToResponse);
     }
 
-    /**
-     * Create new subscription
-     */
     public AbonnementResponse createAbonnement(AbonnementRequest request) {
         log.info("Creating new subscription for user: {}", request.getUtilisateurId());
 
-        // Validate dates
+        com.example.abonnements_service.dto.UserDto user = userServiceClient.getUserById(request.getUtilisateurId());
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with id: " + request.getUtilisateurId());
+        }
+        log.info("User verified: {} ({})", user.getUsername(), user.getEmail());
+
         validateDates(request.getDateDebut(), request.getDateFin());
 
-        // Fetch Forfait entity to get prix and devise (SNAPSHOT pattern)
         Forfait forfait = forfaitService.getForfaitEntityById(request.getForfaitId());
 
-        // Check if Forfait is active
         if (!forfait.getActif()) {
             throw new IllegalStateException("Forfait is not active: " + forfait.getNom());
         }
 
-        // Build entity with SNAPSHOT of prix/devise from Forfait
         Abonnement abonnement = Abonnement.builder()
                 .utilisateurId(request.getUtilisateurId())
                 .forfaitId(forfait.getId())
                 .dateDebut(request.getDateDebut())
                 .dateFin(request.getDateFin())
-                .prix(forfait.getPrix())          // SNAPSHOT from Forfait
-                .devise(forfait.getDevise())      // SNAPSHOT from Forfait
+                .prix(forfait.getPrix())
+                .devise(forfait.getDevise())
                 .statut(request.getStatut() != null ? request.getStatut() : StatutAbonnement.ACTIVE)
                 .build();
 
-        // Save Abonnement
         Abonnement saved = abonnementRepository.save(abonnement);
         log.info("Subscription created with id: {}", saved.getId());
 
-        // Auto-generate Facture
         var facture = factureService.genererFacture(saved);
         log.info("Facture generated for abonnement: {}", saved.getId());
 
-        // Publish AbonnementCreated event to Kafka
-        publishEvent(saved, forfait, facture.getNumeroFacture(), EventType.ABONNEMENT_CREATED);
+        publishEvent(saved, forfait, facture.getNumeroFacture(), user, EventType.ABONNEMENT_CREATED);
 
         return mapToResponse(saved);
     }
 
-    /**
-     * Update existing subscription
-     */
     public AbonnementResponse updateAbonnement(UUID id, AbonnementRequest request) {
         log.info("Updating subscription with id: {}", id);
 
         Abonnement abonnement = abonnementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Abonnement not found with id: " + id));
 
-        // Check if subscription can be updated
         if (abonnement.getStatut() == StatutAbonnement.EXPIRED) {
             throw new IllegalStateException("Cannot update an expired subscription");
         }
 
-        // Validate dates if changed
         LocalDate newDateDebut = request.getDateDebut() != null ? request.getDateDebut() : abonnement.getDateDebut();
         LocalDate newDateFin = request.getDateFin() != null ? request.getDateFin() : abonnement.getDateFin();
         validateDates(newDateDebut, newDateFin);
 
-        // Update fields
-        // NOTE: prix and devise cannot be updated - they are snapshots from Forfait
         if (request.getForfaitId() != null) {
-            // If changing forfait, fetch new snapshot
             Forfait newForfait = forfaitService.getForfaitEntityById(request.getForfaitId());
             if (!newForfait.getActif()) {
                 throw new IllegalStateException("Cannot update to inactive forfait: " + newForfait.getNom());
             }
             abonnement.setForfaitId(newForfait.getId());
-            abonnement.setPrix(newForfait.getPrix());      // Update snapshot with new forfait price
-            abonnement.setDevise(newForfait.getDevise());  // Update snapshot with new forfait devise
+            abonnement.setPrix(newForfait.getPrix());
+            abonnement.setDevise(newForfait.getDevise());
         }
         if (request.getDateDebut() != null) {
             abonnement.setDateDebut(request.getDateDebut());
@@ -139,38 +122,31 @@ public class AbonnementsService {
         Abonnement updated = abonnementRepository.save(abonnement);
         log.info("Subscription updated: {}", id);
 
-        // Fetch forfait for event publishing
         Forfait currentForfait = forfaitService.getForfaitEntityById(updated.getForfaitId());
-
-        // Note: We don't publish an event for updates to avoid noise
-        // Consider adding if needed for audit trail
 
         return mapToResponse(updated);
     }
 
-    /**
-     * Delete (cancel) subscription
-     */
     public void deleteAbonnement(UUID id) {
         log.info("Deleting subscription with id: {}", id);
 
         Abonnement abonnement = abonnementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Abonnement not found with id: " + id));
 
-        // Set status to CANCELED instead of deleting
+        com.example.abonnements_service.dto.UserDto user = userServiceClient.getUserById(abonnement.getUtilisateurId());
+        if (user == null) {
+            log.warn("User not found for abonnement cancellation: {}", abonnement.getUtilisateurId());
+        }
+
         abonnement.setStatut(StatutAbonnement.CANCELED);
         abonnementRepository.save(abonnement);
 
         log.info("Subscription canceled: {}", id);
 
-        // Publish AbonnementCanceled event to Kafka
         Forfait forfait = forfaitService.getForfaitEntityById(abonnement.getForfaitId());
-        publishEvent(abonnement, forfait, null, EventType.ABONNEMENT_CANCELED);
+        publishEvent(abonnement, forfait, null, user, EventType.ABONNEMENT_CANCELED);
     }
 
-    /**
-     * Get active subscriptions for a user
-     */
     @Transactional(readOnly = true)
     public List<AbonnementResponse> getActiveAbonnementsByUserId(UUID userId) {
         log.info("Fetching active subscriptions for user: {}", userId);
@@ -184,58 +160,48 @@ public class AbonnementsService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Renew existing subscription with current Forfait prices
-     */
     public AbonnementResponse renouvelerAbonnement(UUID id) {
         log.info("Renewing subscription: {}", id);
 
-        // Get existing abonnement
         Abonnement existingAbonnement = abonnementRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Abonnement not found with id: " + id));
 
-        // Get current Forfait (with CURRENT prices, not snapshot)
+        com.example.abonnements_service.dto.UserDto user = userServiceClient.getUserById(existingAbonnement.getUtilisateurId());
+        if (user == null) {
+            throw new ResourceNotFoundException("User not found with id: " + existingAbonnement.getUtilisateurId());
+        }
+
         Forfait forfait = forfaitService.getForfaitEntityById(existingAbonnement.getForfaitId());
 
-        // Check if Forfait is still active
         if (!forfait.getActif()) {
             throw new IllegalStateException("Cannot renew: Forfait is no longer active");
         }
 
-        // Calculate new dates based on existing subscription end date
         LocalDate newDateDebut = existingAbonnement.getDateFin().plusDays(1);
         LocalDate newDateFin = calculateDateFin(newDateDebut, forfait.getDuree());
 
-        // Create new subscription with CURRENT Forfait prices (new snapshot)
         Abonnement renewedAbonnement = Abonnement.builder()
                 .utilisateurId(existingAbonnement.getUtilisateurId())
                 .forfaitId(forfait.getId())
                 .dateDebut(newDateDebut)
                 .dateFin(newDateFin)
-                .prix(forfait.getPrix())          // NEW SNAPSHOT with current price
-                .devise(forfait.getDevise())      // NEW SNAPSHOT
+                .prix(forfait.getPrix())
+                .devise(forfait.getDevise())
                 .statut(StatutAbonnement.ACTIVE)
                 .build();
 
-        // Save new abonnement
         Abonnement saved = abonnementRepository.save(renewedAbonnement);
         log.info("Subscription renewed with id: {}", saved.getId());
 
-        // Generate new Facture
         var facture = factureService.genererFacture(saved);
         log.info("Facture generated for renewed abonnement: {}", saved.getId());
 
-        // Publish AbonnementRenewed event to Kafka
-        publishEvent(saved, forfait, facture.getNumeroFacture(), EventType.ABONNEMENT_RENEWED);
+        publishEvent(saved, forfait, facture.getNumeroFacture(), user, EventType.ABONNEMENT_RENEWED);
 
         return mapToResponse(saved);
     }
 
-    /**
-     * Calculate end date based on start date and duration
-     */
     private LocalDate calculateDateFin(LocalDate dateDebut, String duree) {
-        // Parse duree (e.g., "30 jours", "90 jours", "365 jours")
         String[] parts = duree.split(" ");
         if (parts.length >= 2) {
             try {
@@ -246,13 +212,9 @@ public class AbonnementsService {
                 return dateDebut.plusDays(30);
             }
         }
-        // Default to 30 days if parsing fails
         return dateDebut.plusDays(30);
     }
 
-    /**
-     * Validate subscription dates
-     */
     private void validateDates(LocalDate dateDebut, LocalDate dateFin) {
         if (dateDebut == null || dateFin == null) {
             throw new IllegalArgumentException("Start date and end date are required");
@@ -267,9 +229,6 @@ public class AbonnementsService {
         }
     }
 
-    /**
-     * Map entity to response DTO
-     */
     private AbonnementResponse mapToResponse(Abonnement abonnement) {
         return AbonnementResponse.builder()
                 .id(abonnement.getId())
@@ -283,16 +242,19 @@ public class AbonnementsService {
                 .build();
     }
 
-    /**
-     * Publish event to Kafka for inter-service communication
-     */
-    private void publishEvent(Abonnement abonnement, Forfait forfait, String numeroFacture, EventType eventType) {
+    private void publishEvent(Abonnement abonnement, Forfait forfait, String numeroFacture,
+                              com.example.abonnements_service.dto.UserDto user, EventType eventType) {
         try {
+            String eventId = UUID.randomUUID().toString();
+
             AbonnementEvent event = AbonnementEvent.builder()
+                    .eventId(eventId)
                     .eventType(eventType.name())
                     .timestamp(java.time.LocalDateTime.now())
                     .abonnementId(abonnement.getId())
                     .utilisateurId(abonnement.getUtilisateurId())
+                    .utilisateurEmail(user != null ? user.getEmail() : "unknown@example.com")
+                    .utilisateurNom(user != null ? user.getFullName() : "Utilisateur Inconnu")
                     .forfaitId(abonnement.getForfaitId())
                     .forfaitNom(forfait.getNom())
                     .dateDebut(abonnement.getDateDebut())
@@ -304,8 +266,9 @@ public class AbonnementsService {
                     .build();
 
             kafkaProducerService.publishAbonnementEvent(event);
+            log.info("Kafka event published: {} for abonnement {} (eventId: {})",
+                    eventType, abonnement.getId(), eventId);
         } catch (Exception e) {
-            // Log error but don't fail the transaction
             log.error("Failed to publish Kafka event for abonnement {}: {}", abonnement.getId(), e.getMessage());
         }
     }
