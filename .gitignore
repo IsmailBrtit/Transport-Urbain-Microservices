@@ -1,3 +1,5 @@
+.talismanrc
+
 # ============================================
 # Urbain Transport System - Git Ignore
 # ============================================
@@ -82,3 +84,4 @@ credentials/
 *.key
 *.p12
 *.keystore
+nsarr-pejct.txt
