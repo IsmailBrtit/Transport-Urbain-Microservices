@@ -23,24 +23,18 @@ public class Run {
     @JoinColumn(name = "route_id", nullable = false)
     private Route route;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private Direction direction;
-
     private String destinationStopName;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private ScheduleType scheduleType;
-
+    private ScheduleType scheduleType; //determines whether the run is regular or for a special date
 
     private Integer dayOfWeek; // 1-7, NULL if special
-
 
     private LocalDate specificDate; // NULL if regular
 
     @Column(nullable = false)
-    private Integer runNum;
+    private Integer runNum;  //this is the number of the run for that day
 
     @Column(nullable = false)
     private LocalTime startTime;

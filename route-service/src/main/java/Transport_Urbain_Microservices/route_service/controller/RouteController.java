@@ -1,8 +1,6 @@
 package Transport_Urbain_Microservices.route_service.controller;
 
-import Transport_Urbain_Microservices.route_service.dto.ChangeRouteStatusDto;
-import Transport_Urbain_Microservices.route_service.dto.RouteDto;
-import Transport_Urbain_Microservices.route_service.dto.StopDto;
+import Transport_Urbain_Microservices.route_service.dto.*;
 import Transport_Urbain_Microservices.route_service.service.RouteService;
 import Transport_Urbain_Microservices.route_service.service.StopService;
 import lombok.RequiredArgsConstructor;
@@ -24,14 +22,19 @@ public class RouteController {
         return ResponseEntity.ok(routeService.createRoute(routeDto));
     }
 
-    @PutMapping
-    public ResponseEntity<RouteDto> updateRoute(@RequestBody RouteDto routeDto) {
-        return ResponseEntity.ok(routeService.updateRoute(routeDto));
+    @PutMapping("/update/info")
+    public ResponseEntity<RouteDto> updateRouteInfo(@RequestBody ChangeRouteInfoDto routeDto) {
+        return ResponseEntity.ok(routeService.updateRouteInfo(routeDto));
     }
 
-    @PatchMapping("/status")
-    public ResponseEntity<RouteDto> changeRouteStatus(@RequestBody ChangeRouteStatusDto statusDto) {
-        return ResponseEntity.ok(routeService.changeRouteStatus(statusDto));
+    @PutMapping("/update/stops")
+    public ResponseEntity<RouteDto> updateRouteStops(@RequestBody ChangeRouteStopsDto routeDto) {
+        return ResponseEntity.ok(routeService.updateRouteStops(routeDto));
+    }
+
+    @PutMapping("/update/status")
+    public ResponseEntity<RouteDto> updateRouteStatus(@RequestBody ChangeRouteStatusDto statusDto) {
+        return ResponseEntity.ok(routeService.updateRouteStatus(statusDto));
     }
 
     @GetMapping("/{routeId}")

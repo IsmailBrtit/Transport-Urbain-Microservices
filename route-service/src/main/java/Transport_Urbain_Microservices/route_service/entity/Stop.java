@@ -17,6 +17,8 @@ public class Stop {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private Long osmId;
+
     @Column(nullable = false)
     private String name;
 

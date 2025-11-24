@@ -20,7 +20,9 @@ public class Route {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false, unique = true)
+    private Long osmId;
+
+    @Column(nullable = false)
     private String num;
 
     @Column(columnDefinition = "TEXT")

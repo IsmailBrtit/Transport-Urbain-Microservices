@@ -7,8 +7,10 @@ import Transport_Urbain_Microservices.route_service.entity.StopTime;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface RunRepo extends JpaRepository<Run, Long> {
     long countByRouteAndScheduleTypeAndDayOfWeek(
@@ -34,4 +36,6 @@ public interface RunRepo extends JpaRepository<Run, Long> {
     List<Run> findAllByRoute(Route route);
 
     List<Run> findAllByStopTimesIn(Collection<List<StopTime>> stopTimes);
+
+    Optional<Run> findByRouteAndScheduleTypeAndDayOfWeekAndStartTime(Route route, ScheduleType scheduleType, Integer dayOfWeek, LocalTime startTime);
 }

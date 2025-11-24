@@ -14,7 +14,6 @@ public class RunMapper {
         dto.setRouteId(run.getRoute().getId());
         dto.setRouteNum(run.getRoute().getNum());
         dto.setRouteName(run.getRoute().getName());
-        dto.setDirection(run.getDirection());
         dto.setDestinationStopName(run.getDestinationStopName());
         dto.setScheduleType(run.getScheduleType());
         dto.setDayOfWeek(run.getDayOfWeek());

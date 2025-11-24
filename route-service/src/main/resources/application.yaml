@@ -1,6 +1,9 @@
 server:
   port: 8083
 
+app:
+  osm-file: classpath:osm-data.json
+  schedule-file: classpath:schedules.json
 spring:
   application:
     name: route-service

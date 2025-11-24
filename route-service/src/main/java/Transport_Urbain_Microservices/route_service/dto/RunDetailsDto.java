@@ -1,6 +1,5 @@
 package Transport_Urbain_Microservices.route_service.dto;
 
-import Transport_Urbain_Microservices.route_service.entity.Direction;
 import Transport_Urbain_Microservices.route_service.entity.ScheduleType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +17,6 @@ public class RunDetailsDto {
     private Long routeId;
     private String routeNum;
     private String routeName;
-    private Direction direction;
     private String destinationStopName;
     private ScheduleType scheduleType;
     private Integer dayOfWeek;

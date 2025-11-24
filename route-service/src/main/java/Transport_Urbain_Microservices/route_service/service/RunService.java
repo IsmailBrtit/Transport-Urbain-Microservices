@@ -43,7 +43,7 @@ public class RunService {
         // Create Run entity
         Run run = new Run();
         run.setRoute(context.route);
-        run.setDirection(dto.getDirection());
+//        run.setDirection(dto.getDirection());
         run.setDestinationStopName(destinationStopName);
         run.setScheduleType(dto.getScheduleType());
         run.setDayOfWeek(dto.getDayOfWeek());
@@ -87,7 +87,7 @@ public class RunService {
         }
 
         // 4. Get ordered route stops based on direction
-        List<Long> orderedRouteStopIds = getOrderedRouteStopIds(route, dto.getDirection());
+        List<Long> orderedRouteStopIds = getOrderedRouteStopIds(route, /*dto.getDirection()*/ null);
 
         // 5. Validate all stops exist in database
         Set<Long> dtoStopIds = dto.getStopTimes().stream()
@@ -134,7 +134,7 @@ public class RunService {
 
     private List<Long> getOrderedRouteStopIds(Route route, Direction direction) {
         List<Long> stopIds = route.getRouteStops().stream()
-                .sorted(Comparator.comparing(RouteStop::getOrder))
+                .sorted(Comparator.comparing(RouteStop::getStopOrder))
                 .map(rs -> rs.getStop().getId())
                 .collect(Collectors.toList());
 

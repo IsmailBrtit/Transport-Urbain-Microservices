@@ -5,10 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class ChangeRouteStatusDto {
+public class ChangeRouteStopsDto {
     private Long id;
-    private RouteStatus newRouteStatus;
+    private List<Long> routeStops;
 }

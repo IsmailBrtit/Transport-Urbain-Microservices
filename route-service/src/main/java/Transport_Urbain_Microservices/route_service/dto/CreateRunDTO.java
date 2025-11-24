@@ -1,6 +1,5 @@
 package Transport_Urbain_Microservices.route_service.dto;
 
-import Transport_Urbain_Microservices.route_service.entity.Direction;
 import Transport_Urbain_Microservices.route_service.entity.ScheduleType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
@@ -19,9 +18,6 @@ public class CreateRunDTO {
 
     @NotNull(message = "Route ID is required")
     private Long routeId;
-
-    @NotNull(message = "Direction is required")
-    private Direction direction;
 
     @NotNull(message = "Schedule type is required")
     private ScheduleType scheduleType;

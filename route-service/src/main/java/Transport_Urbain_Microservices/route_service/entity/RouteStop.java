@@ -23,5 +23,5 @@ public class RouteStop {
     private Stop stop;
 
     @Column(nullable = false)
-    private Integer order;
+    private Integer stopOrder;
 }
