@@ -3119,7 +3119,7 @@
       "ref": "1",
       "from": "Doha Centre",
       "to": "Bab Chellah",
-      "operating_hours": "Mo-Th 06:00-22:20; Fr 06:00-22:20; Sa 06:15-22:20; Su 06:30-22:20",
+      "operating_hours": "06:00-22:00",
       "frequency_minutes": 20,
       "stops": [
         {
@@ -3311,7 +3311,7 @@
       "ref": "2",
       "from": "Diour Al Maliya",
       "to": "Mohammed V theater",
-      "operating_hours": "Mo-Fr 06:05-22:20; Sa 06:15-22:30; Su 06:45-22:30",
+      "operating_hours": "06:05-22:30",
       "frequency_minutes": 15,
       "stops": [
         {
@@ -6080,7 +6080,7 @@
       "ref": "1",
       "from": "Bab Chellah",
       "to": "Doha Centre",
-      "operating_hours": "Mo-Th 06:48-21:30; Fr 06:48-21:21; Sa 07:00-21:30; Su 07:15-21:20",
+      "operating_hours": "06:30-21:30",
       "frequency_minutes": 15,
       "stops": [
         {
@@ -6258,7 +6258,7 @@
       "ref": "2",
       "from": "Mohammed V theater",
       "to": "Diour El Maliya",
-      "operating_hours": "Mo-Fr 06:50-21:35; Sa 07:00-21:45; Su 07:30-21:45",
+      "operating_hours": "06:50-21:45",
       "frequency_minutes": 20,
       "stops": [
         {
@@ -13895,7 +13895,7 @@
       "ref": "38",
       "from": "RESIDENCE TAWHID-V",
       "to": "AV HASSAN II BAB EL HED",
-      "operating_hours": "Mo-Su 06:00-21:45",
+      "operating_hours": "06:00-21:45",
       "frequency_minutes": 30,
       "stops": [
         {

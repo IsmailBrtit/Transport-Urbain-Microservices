@@ -16,7 +16,7 @@ spring:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
   security:
     debug: true
     oauth2:
@@ -35,3 +35,4 @@ logging:
     org.springframework.web.filter.CommonsRequestLoggingFilter: DEBUG
     org.springframework.security: DEBUG
     Transport_Urbain_Microservices.user_service: DEBUG
+    org.hibernate.SQL: debug

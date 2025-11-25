@@ -9,7 +9,7 @@ import java.io.Serializable;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-class RouteStopId implements Serializable {
+public class RouteStopId implements Serializable {
     private Long route;
     private Long stop;
 }

@@ -1,10 +1,7 @@
 package Transport_Urbain_Microservices.route_service.dataloader;
 
 import Transport_Urbain_Microservices.route_service.entity.*;
-import Transport_Urbain_Microservices.route_service.repo.RouteRepo;
-import Transport_Urbain_Microservices.route_service.repo.RunRepo;
-import Transport_Urbain_Microservices.route_service.repo.StopRepo;
-import Transport_Urbain_Microservices.route_service.repo.StopTimeRepo;
+import Transport_Urbain_Microservices.route_service.repo.*;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
@@ -32,19 +31,16 @@ public class ScheduleDataLoader implements ApplicationRunner {
     private final RouteRepo routeRepo;
     private final StopRepo stopRepo;
     private final RunRepo runRepo;
-    private final StopTimeRepo stopTimeRepo;
-
-    // Default: create regular runs for all days (1..7). Change if you want fewer days.
-    private static final int[] DEFAULT_DAYS = {1,2,3,4,5,6,7};
+    private final RouteStopOffsetRepo routeStopOffsetRepo;
 
     public ScheduleDataLoader(RouteRepo routeRepo,
                               StopRepo stopRepo,
                               RunRepo runRepo,
-                              StopTimeRepo stopTimeRepo) {
+                              RouteStopOffsetRepo routeStopOffsetRepo) {
         this.routeRepo = routeRepo;
         this.stopRepo = stopRepo;
         this.runRepo = runRepo;
-        this.stopTimeRepo = stopTimeRepo;
+        this.routeStopOffsetRepo = routeStopOffsetRepo;
     }
 
     @Override
@@ -53,8 +49,8 @@ public class ScheduleDataLoader implements ApplicationRunner {
         try (InputStream is = scheduleFile.getInputStream()) {
             JsonNode root = objectMapper.readTree(is);
             JsonNode routesNode = root.path("routes");
-            if (routesNode.isMissingNode()) {
-                System.out.println("No 'routes' node found in schedule file.");
+            if (routesNode.isMissingNode() || !routesNode.isObject()) {
+                System.out.println("No routes object found in schedule file");
                 return;
             }
 
@@ -67,111 +63,113 @@ public class ScheduleDataLoader implements ApplicationRunner {
                 Long relationOsmId;
                 try {
                     relationOsmId = Long.parseLong(relationIdStr);
-                } catch (NumberFormatException ex) {
-                    System.out.println("Skipping route key that is not a number: " + relationIdStr);
+                } catch (NumberFormatException e) {
+                    System.out.println("Skipping route with non-numeric key: " + relationIdStr);
                     continue;
                 }
 
+                // Find route by osmId
                 Optional<Route> routeOpt = routeRepo.findByOsmId(relationOsmId);
                 if (!routeOpt.isPresent()) {
-                    System.out.println("Route with osmId=" + relationOsmId + " not found in DB — skipping schedule for it.");
+                    System.out.println("Schedule: route with osmId " + relationOsmId + " not found in DB. Skipping.");
                     continue;
                 }
                 Route route = routeOpt.get();
 
-                // parse operating_hours and frequency_minutes
-                String opHours = routeJson.path("operating_hours").asText(null); // "06:00-22:00"
-                int frequencyMinutes = routeJson.path("frequency_minutes").asInt(-1);
-                if (opHours == null || frequencyMinutes <= 0) {
-                    System.out.println("Route " + relationOsmId + " missing operating_hours or frequency_minutes — skipping.");
-                    continue;
-                }
+                JsonNode stopsNode = routeJson.path("stops");
+                if (stopsNode.isArray()) {
+                    for (JsonNode stopJson : stopsNode) {
+                        Long stopOsmId = stopJson.path("id").asLong();
+                        Integer minutes = stopJson.path("arrival_time_from_start_minutes").isNumber()
+                                ? stopJson.path("arrival_time_from_start_minutes").asInt()
+                                : null;
 
-                String[] parts = opHours.split("-");
-                if (parts.length != 2) {
-                    System.out.println("Invalid operating_hours format for route " + relationOsmId + ": " + opHours);
-                    continue;
-                }
-                LocalTime firstDeparture;
-                LocalTime lastDeparture;
-                try {
-                    firstDeparture = LocalTime.parse(parts[0].trim());
-                    lastDeparture = LocalTime.parse(parts[1].trim());
-                } catch (Exception e) {
-                    System.out.println("Failed to parse times for route " + relationOsmId + ": " + e.getMessage());
-                    continue;
-                }
+                        if (minutes == null) {
+                            System.out.println("Schedule: missing arrival_time_from_start_minutes for stop " + stopOsmId + " on route " + relationOsmId + ". Skipping offset.");
+                            continue;
+                        }
 
-                JsonNode stopsArray = routeJson.path("stops");
-                if (!stopsArray.isArray() || stopsArray.size() == 0) {
-                    System.out.println("No stops listed for route " + relationOsmId + " — skipping.");
-                    continue;
-                }
+                        Optional<Stop> stopOpt = stopRepo.findByOsmId(stopOsmId);
+                        if (!stopOpt.isPresent()) {
+                            System.out.println("Schedule: stop osmId " + stopOsmId + " not found in DB for route " + relationOsmId + ". Skipping offset creation.");
+                            continue;
+                        }
+                        Stop stop = stopOpt.get();
 
-                // We'll generate runs for each configured day (default 1..7)
-                for (int day : DEFAULT_DAYS) {
-                    LocalTime departure = firstDeparture;
-                    int runIndex = 0;
-                    while (!departure.isAfter(lastDeparture)) {
-                        runIndex++;
-                        // Check if run already exists (avoid duplication)
-                        Optional<Run> existingRun = runRepo.findByRouteAndScheduleTypeAndDayOfWeekAndStartTime(
-                                route, ScheduleType.REGULAR, day, departure);
-
-                        if (existingRun.isPresent()) {
-                            // skip: do not touch existing run or its stopTimes
-                            System.out.println(String.format("Skipping existing run for route=%d day=%d time=%s",
-                                    route.getId(), day, departure));
+                        // Upsert RouteStopOffset
+                        Optional<RouteStopOffset> maybeOffset = routeStopOffsetRepo.findByRouteAndStop(route, stop);
+                        if (maybeOffset.isPresent()) {
+                            RouteStopOffset offset = maybeOffset.get();
+                            if (!Integer.valueOf(minutes).equals(offset.getCumulativeMinutesFromStart())) {
+                                offset.setCumulativeMinutesFromStart(minutes);
+                                routeStopOffsetRepo.save(offset);
+                            }
                         } else {
-                            // create new Run
+                            RouteStopOffset newOffset = new RouteStopOffset();
+                            newOffset.setRoute(route);
+                            newOffset.setStop(stop);
+                            newOffset.setCumulativeMinutesFromStart(minutes);
+                            routeStopOffsetRepo.save(newOffset);
+                        }
+                    }
+                } else {
+                    System.out.println("Schedule: no stops array for route " + relationOsmId);
+                }
+
+                String operatingHours = routeJson.path("operating_hours").asText(null);
+                Integer frequencyMinutes = routeJson.path("frequency_minutes").isNumber()
+                        ? routeJson.path("frequency_minutes").asInt()
+                        : null;
+
+                if (operatingHours == null || frequencyMinutes == null) {
+                    System.out.println("Schedule: missing operating_hours or frequency_minutes for route " + relationOsmId + ". Skipping runs creation.");
+                    continue;
+                }
+
+                LocalTime startTime;
+                LocalTime endTime;
+                try {
+                    String[] parts = operatingHours.split("-");
+                    DateTimeFormatter tf = DateTimeFormatter.ofPattern("H:mm"); // accept e.g. 06:00 or 6:00
+                    startTime = LocalTime.parse(parts[0].trim(), tf);
+                    endTime = LocalTime.parse(parts[1].trim(), tf);
+                } catch (Exception ex) {
+                    System.out.println("Schedule: could not parse operating_hours '" + operatingHours + "' for route " + relationOsmId + ". Skipping runs.");
+                    continue;
+                }
+
+                boolean hasAnyRegular = runRepo.existsByRouteAndScheduleType(route, ScheduleType.REGULAR);
+                if (hasAnyRegular) {
+                    System.out.println("Schedule: route " + relationOsmId + " already has regular runs. Use app.osm.force-refresh-schedules=true to replace. Skipping run creation.");
+                    continue;
+                }
+
+                Map<Integer, Integer> dayRunNumCounter = new HashMap<>(); // day -> next runNum
+
+                for (int day = 1; day <= 7; day++) {
+                    LocalTime t = startTime;
+                    int runNum = 0;
+                    while (!t.isAfter(endTime)) {
+                        runNum++;
+                        // Dedup check: exist by route, scheduleType REGULAR, dayOfWeek day, startTime t
+                        boolean exists = runRepo.existsByRouteAndScheduleTypeAndDayOfWeekAndStartTime(route, ScheduleType.REGULAR, day, t);
+                        if (!exists) {
                             Run run = new Run();
                             run.setRoute(route);
-                            run.setDestinationStopName(routeJson.path("to").asText(null));
+                            run.setDestinationStopName(routeJson.path("to").asText(null)); // optional
                             run.setScheduleType(ScheduleType.REGULAR);
                             run.setDayOfWeek(day);
                             run.setSpecificDate(null);
-                            run.setRunNum(runIndex);
-                            run.setStartTime(departure);
-                            run = runRepo.save(run);
-
-                            // create StopTimes for this run
-                            int createdStops = createStopTimesForRun(run, stopsArray);
-                            System.out.println(String.format("Created run id=%d for route=%d day=%d time=%s (%d stopTimes)",
-                                    run.getId(), route.getId(), day, departure, createdStops));
+                            run.setRunNum(runNum);
+                            run.setStartTime(t);
+                            runRepo.save(run);
                         }
-
-                        departure = departure.plusMinutes(frequencyMinutes);
+                        t = t.plusMinutes(frequencyMinutes);
                     }
                 }
+
+                System.out.println("Schedule: processed route " + relationOsmId + " (" + route.getName() + ")");
             }
-
-            System.out.println("Schedule import finished.");
         }
-    }
-
-    private int createStopTimesForRun(Run run, JsonNode stopsArray) {
-        int count = 0;
-        for (JsonNode stopJson : stopsArray) {
-            long stopOsmId = stopJson.path("id").asLong(-1);
-            if (stopOsmId == -1) continue;
-
-            Optional<Stop> stopOpt = stopRepo.findByOsmId(stopOsmId);
-            if (!stopOpt.isPresent()) {
-                // stop isn't in DB — log and skip. Optionally auto-create here.
-                System.out.println("Stop with osmId=" + stopOsmId + " not found in DB; skipping StopTime.");
-                continue;
-            }
-            Stop stop = stopOpt.get();
-
-            int arrivalMinute = stopJson.path("arrival_time_from_start_minutes").asInt(0);
-
-            StopTime st = new StopTime();
-            st.setRun(run);
-            st.setStop(stop);
-            st.setArrivalMinuteFromStart(arrivalMinute);
-            stopTimeRepo.save(st);
-            count++;
-        }
-        return count;
     }
 }

@@ -1,0 +1,16 @@
+<configuration>
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator class="Transport_Urbain_Microservices.route_service.dataloader.SelectQueryEvaluator" />
+            <onMatch>DENY</onMatch>     <!-- Drop the log if it matches (starts with "select") -->
+            <onMismatch>NEUTRAL</onMismatch>  <!-- Proceed with other logs -->
+        </filter>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="debug">
+        <appender-ref ref="CONSOLE" />
+    </root>
+</configuration>

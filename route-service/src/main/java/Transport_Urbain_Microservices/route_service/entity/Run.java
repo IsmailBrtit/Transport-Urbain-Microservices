@@ -39,9 +39,6 @@ public class Run {
     @Column(nullable = false)
     private LocalTime startTime;
 
-    @OneToMany(mappedBy = "run", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<StopTime> stopTimes;
-
     @PrePersist
     @PreUpdate
     private void validateScheduleType() {
