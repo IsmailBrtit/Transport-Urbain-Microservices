@@ -2,6 +2,7 @@ package Transport_Urbain_Microservices.gateway_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.oauth2.client.oidc.web.server.logout.OidcClientInitiatedServerLogoutSuccessHandler;
@@ -27,6 +28,7 @@ public class SecurityConfig {
                 // Authorization rules
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/", "/public/**","/user/register", "/actuator/**", "/login/**", "/error").permitAll()
+                        .pathMatchers(HttpMethod.GET, "route/run/**", "route/stop/**", "route/route/**").permitAll()
                         .anyExchange().authenticated()
                 )
 
