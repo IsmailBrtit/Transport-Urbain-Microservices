@@ -1,5 +1,6 @@
 package Transport_Urbain_Microservices.route_service.repo;
 
+import Transport_Urbain_Microservices.route_service.dto.RunDetailsDto;
 import Transport_Urbain_Microservices.route_service.entity.Route;
 import Transport_Urbain_Microservices.route_service.entity.Run;
 import Transport_Urbain_Microservices.route_service.entity.ScheduleType;
@@ -37,4 +38,14 @@ public interface RunRepo extends JpaRepository<Run, Long> {
     boolean existsByRouteAndScheduleType(Route route, ScheduleType scheduleType);
 
     boolean existsByRouteAndScheduleTypeAndDayOfWeekAndStartTime(Route route, ScheduleType scheduleType, Integer dayOfWeek, LocalTime startTime);
+
+    List<Run> findByRoute(Route route);
+
+    List<Run> findByRouteAndScheduleTypeAndSpecificDate(Route route, ScheduleType scheduleType, LocalDate specificDate);
+
+    List<Run> findByRouteAndScheduleTypeAndDayOfWeek(Route route, ScheduleType scheduleType, Integer dayOfWeek);
+
+    long countByScheduleTypeAndSpecificDate(ScheduleType scheduleType, LocalDate specificDate);
+
+    List<Run> findByScheduleTypeAndSpecificDate(ScheduleType scheduleType, LocalDate specificDate);
 }

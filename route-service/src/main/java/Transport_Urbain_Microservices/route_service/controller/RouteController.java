@@ -4,6 +4,7 @@ import Transport_Urbain_Microservices.route_service.dto.*;
 import Transport_Urbain_Microservices.route_service.service.RouteService;
 import Transport_Urbain_Microservices.route_service.service.StopService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +20,7 @@ public class RouteController {
 
     @PostMapping
     public ResponseEntity<RouteDto> createRoute(@RequestBody RouteDto routeDto) {
-        return ResponseEntity.ok(routeService.createRoute(routeDto));
+        return ResponseEntity.status(HttpStatus.CREATED).body(routeService.createRoute(routeDto));
     }
 
     @PutMapping("/update/info")
@@ -30,6 +31,11 @@ public class RouteController {
     @PutMapping("/update/stops")
     public ResponseEntity<RouteDto> updateRouteStops(@RequestBody ChangeRouteStopsDto routeDto) {
         return ResponseEntity.ok(routeService.updateRouteStops(routeDto));
+    }
+
+    @PutMapping("/update/offsets")
+    public ResponseEntity<RouteDto> updateRouteOffsets(@RequestBody ChangeRouteOffsetsDto changeRouteOffsetsDto) {
+        return ResponseEntity.ok(routeService.updateRouteOffsets(changeRouteOffsetsDto));
     }
 
     @PutMapping("/update/status")
@@ -48,11 +54,7 @@ public class RouteController {
     }
 
     @DeleteMapping("/{routeId}")
-    public ResponseEntity<Void> deleteRoute(@PathVariable Long routeId) {
-        boolean deleted = routeService.deleteRouteById(routeId);
-        if (!deleted) {
-            return ResponseEntity.badRequest().build();
-        }
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<Boolean> deleteRoute(@PathVariable Long routeId) {
+        return ResponseEntity.ok(routeService.deleteRouteById(routeId));
     }
 }

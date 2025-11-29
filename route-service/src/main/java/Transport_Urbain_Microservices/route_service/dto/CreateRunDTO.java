@@ -30,21 +30,4 @@ public class CreateRunDTO {
 
     @NotNull(message = "Start time is required")
     private LocalTime startTime;
-
-    @NotEmpty(message = "Stop times list cannot be empty")
-    @Valid
-    private List<StopTimeDTO> stopTimes;
-
-    @Data
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class StopTimeDTO {
-
-        @NotNull(message = "Stop ID is required")
-        private Long stopId;
-
-        @NotNull(message = "Arrival minute from start is required")
-        @Min(value = 0, message = "Arrival minute must be non-negative")
-        private Integer arrivalMinuteFromStart;
-    }
 }

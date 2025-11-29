@@ -1,8 +1,6 @@
 package Transport_Urbain_Microservices.route_service.dto;
 
 import Transport_Urbain_Microservices.route_service.entity.RouteStatus;
-import Transport_Urbain_Microservices.route_service.entity.RouteStop;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -19,4 +17,5 @@ public class RouteDto {
     private String description;
     private RouteStatus status;
     private List<Long> routeStops;
+    private List<Integer> cumulativeMinutesFromStartForStops;
 }
