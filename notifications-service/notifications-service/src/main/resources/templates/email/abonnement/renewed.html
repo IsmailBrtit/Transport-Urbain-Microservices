@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Renouvellement d'abonnement</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header .icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #28a745;
+        }
+        .details-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .details-box h3 {
+            margin-top: 0;
+            color: #28a745;
+        }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #666;
+        }
+        .detail-value {
+            color: #333;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #28a745;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            margin: 20px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #666;
+            font-size: 14px;
+        }
+        .renewal-icon {
+            color: #28a745;
+            font-size: 60px;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="icon">🔄</div>
+        <h1>Abonnement Renouvelé</h1>
+        <p>Merci pour votre fidélité!</p>
+    </div>
+
+    <div class="content">
+        <p class="greeting">Bonjour <strong th:text="${nomUtilisateur}">Utilisateur</strong>,</p>
+
+        <p>Excellent! Votre abonnement au système de transport urbain Urbain a été renouvelé avec succès.</p>
+
+        <div class="renewal-icon">✓</div>
+
+        <div class="details-box">
+            <h3>📋 Détails du renouvellement</h3>
+
+            <div class="detail-row">
+                <span class="detail-label">Forfait :</span>
+                <span class="detail-value" th:text="${nomForfait}">Mensuel Standard</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Nouvelle période :</span>
+                <span class="detail-value">
+                    Du <span th:text="${dateDebut}">01/02/2025</span> au <span th:text="${dateFin}">28/02/2025</span>
+                </span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Montant :</span>
+                <span class="detail-value price" th:text="${prix}">200.00 DH</span>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Numéro de facture :</span>
+                <span class="detail-value" th:text="${numeroFacture}">FAC-2025-00124</span>
+            </div>
+        </div>
+
+        <p><strong>Continuez à profiter de vos avantages :</strong></p>
+        <ul>
+            <li>🚌 Trajets illimités sur tout le réseau</li>
+            <li>📱 Notifications en temps réel</li>
+            <li>💳 Paiements simplifiés</li>
+            <li>📊 Historique de vos trajets</li>
+        </ul>
+
+        <p style="text-align: center;">
+            <a href="#" class="cta-button">Voir ma facture</a>
+        </p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Système de Transport Urbain Urbain</strong></p>
+        <p>Pour toute question, contactez-nous à support@urbain-transport.ma</p>
+        <p style="font-size: 12px; color: #999;">
+            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+        </p>
+    </div>
+</div>
+</body>
+</html>

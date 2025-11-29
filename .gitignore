@@ -1,3 +1,86 @@
 .talismanrc
 
+# ============================================
+# Urbain Transport System - Git Ignore
+# ============================================
+
+# ============================================
+# ENVIRONMENT VARIABLES (NEVER COMMIT!)
+# ============================================
+.env
+.env.local
+.env.production
+.env.development
 **/.env
+**/.env.local
+
+
+# ============================================
+# GRADLE BUILD FILES
+# ============================================
+.gradle/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# ============================================
+# IDE FILES
+# ============================================
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# ============================================
+# JAVA / SPRING BOOT
+# ============================================
+*.class
+*.jar
+*.war
+*.ear
+!gradle-wrapper.jar
+*.log
+logs/
+target/
+
+# ============================================
+# DOCKER
+# ============================================
+docker-compose.override.yml
+
+# ============================================
+# OS FILES
+# ============================================
+.DS_Store
+Thumbs.db
+*.tmp
+*.swp
+*~
+
+# ============================================
+# DATABASES (Local Development)
+# ============================================
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================
+# NODE MODULES (if React frontend added)
+# ============================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================
+# SECRETS & CREDENTIALS
+# ============================================
+secrets/
+credentials/
+*.pem
+*.key
+*.p12
+*.keystore
