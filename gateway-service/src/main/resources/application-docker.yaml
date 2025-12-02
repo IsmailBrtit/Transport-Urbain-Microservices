@@ -1,0 +1,113 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        name: GATEWAY_SESSION
+        http-only: true
+        secure: false  # Set to true in production with HTTPS
+        same-site: lax
+        max-age: 3600
+
+spring:
+  application:
+    name: Gateway Service
+
+  data:
+    redis:
+      host: redis
+      port: 6379
+      password: # Set if Redis has password
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+          max-wait: -1ms
+        shutdown-timeout: 100ms
+
+  # Session Configuration with Redis
+  session:
+    store-type: redis
+    redis:
+      namespace: spring:session:gateway
+      flush-mode: on_save
+      cleanup-cron: "0 * * * * *"  # Cleanup expired sessions every minute
+    timeout: 3600s  # 1 hour session timeout
+
+  # OAuth2 Client Configuration
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: gateway-client
+            client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET}
+            client-authentication-method: client_secret_basic
+            authorization-grant-type: password
+            scope:
+              - openid
+              - profile
+              - email
+            client-name: Keycloak
+        provider:
+          keycloak:
+            revocation-uri: http://keycloak:8080/realms/my-realm/protocol/openid-connect/revoke  # Add this
+            issuer-uri: http://keycloak:8080/realms/my-realm
+#            authorization-uri: http://localhost:8180/realms/my-realm/protocol/openid-connect/auth
+            token-uri: http://keycloak:8080/realms/my-realm/protocol/openid-connect/token
+            user-info-uri: http://keycloak:8080/realms/my-realm/protocol/openid-connect/userinfo
+            jwk-set-uri: http://keycloak:8080/realms/my-realm/protocol/openid-connect/certs
+            user-name-attribute: preferred_username
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              uri: http://user-service:8082
+              predicates:
+                - Path=/user/**
+              filters:
+                - TokenRelay=
+                - StripPrefix=1
+            - id: route-service
+              uri: http://route-service:8083
+              predicates:
+                - Path=/route/**
+              filters:
+                - TokenRelay=
+                - StripPrefix=1
+
+# Keycloak Admin Configuration for User Registration
+keycloak:
+  admin:
+    server-url: http://keycloak:8080
+    realm: my-realm  # Admin realm (usually 'master')
+    client-id: gateway-admin  # Admin client ID
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_CLIENT_SECRET}
+#    username: # Leave empty when using service account
+#    password: # Leave empty when using service account
+  registration:
+    default-roles: USER  # Default roles to assign (comma-separated)
+    email-verified: false  # Set to true if you want emails pre-verified
+
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,sessions
+  endpoint:
+    health:
+      show-details: always
+
+# Logging
+logging:
+  level:
+    root: INFO
+    org.springframework.security: DEBUG
+    org.springframework.session: DEBUG
+    org.springframework.data.redis: DEBUG
+    org.springframework.cloud.gateway: DEBUG

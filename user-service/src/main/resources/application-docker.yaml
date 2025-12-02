@@ -19,18 +19,18 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: http://localhost:8180/realms/my-realm
-          jwk-set-uri: http://localhost:8180/realms/my-realm/protocol/openid-connect/certs
+          issuer-uri: http://keycloak:8080/realms/my-realm
+          jwk-set-uri: http://keycloak:8080/realms/my-realm/protocol/openid-connect/certs
   mvc:
     log-request-details: true
 
 # Keycloak Admin Configuration for User Registration
 keycloak:
   admin:
-    server-url: http://localhost:8180
+    server-url: http://keycloak:8080
     realm: my-realm  # Admin realm (usually 'master')
     client-id: gateway-admin  # Admin client ID
-    client-secret: ${KEYCLOAK_ADMIN_CLIENT_CLIENT_SECRET}
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
   #    username: # Leave empty when using service account
   #    password: # Leave empty when using service account
   registration:
