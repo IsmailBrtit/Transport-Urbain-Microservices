@@ -11,6 +11,9 @@ import org.springframework.security.oauth2.client.web.server.ServerOAuth2Authori
 import org.springframework.security.oauth2.client.web.server.WebSessionServerOAuth2AuthorizedClientRepository;
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.security.web.server.authentication.logout.ServerLogoutSuccessHandler;
+import org.springframework.security.web.server.context.ServerSecurityContextRepository;
+import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
+import org.springframework.web.reactive.function.client.WebClient;
 
 @Configuration
 @EnableWebFluxSecurity
@@ -28,14 +31,15 @@ public class SecurityConfig {
                 // Authorization rules
                 .authorizeExchange(exchanges -> exchanges
                         .pathMatchers("/", "/public/**","/user/register", "/actuator/**", "/login/**", "/error").permitAll()
-                        .pathMatchers(HttpMethod.GET, "route/run/**", "route/stop/**", "route/route/**").permitAll()
+                        .pathMatchers(HttpMethod.GET, "route/run/**", "route/stop/**", "route/route/**")
+                        .permitAll().pathMatchers(HttpMethod.POST, "/login").permitAll()
                         .anyExchange().authenticated()
                 )
 
                 // OAuth2 Login with PKCE
-                .oauth2Login(oauth2 -> oauth2
-                        .authorizedClientRepository(authorizedClientRepository())
-                )
+//                .oauth2Login(oauth2 -> oauth2
+//                        .authorizedClientRepository(authorizedClientRepository())
+//                )
 
                 // OAuth2 Client configuration
                 .oauth2Client(oauth2 -> oauth2
@@ -74,5 +78,26 @@ public class SecurityConfig {
         successHandler.setPostLogoutRedirectUri("{baseUrl}/");
 
         return successHandler;
+    }
+
+//    /**
+//     * Bean for handling password grant token requests
+//     */
+//    @Bean
+//    public ReactiveOAuth2AccessTokenResponseClient<OAuth2ResourceOwnerPasswordGrantRequest> passwordTokenResponseClient() {
+//        return new DefaultPasswordReactiveOAuth2AccessTokenResponseClient();
+//    }
+
+    /**
+     * Security context repository (Redis-backed session)
+     */
+    @Bean
+    public ServerSecurityContextRepository securityContextRepository() {
+        return new WebSessionServerSecurityContextRepository();
+    }
+
+    @Bean
+    public WebClient.Builder webClientBuilder() {
+        return WebClient.builder();
     }
 }
