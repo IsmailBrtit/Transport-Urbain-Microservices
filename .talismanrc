@@ -8,8 +8,6 @@ fileignoreconfig:
   checksum: cac98a085910d0abf1315a179777ec5d30d5d849ece3423abe4eddbbda30927a
 - filename: gateway-service/src/main/java/Transport_Urbain_Microservices/gateway_service/service/UserRegistrationService.java
   checksum: f2af21b1e6b89523f9cd7d7b04aef047e29fa11796e50427a2339310e8adb549
-- filename: gateway-service/src/main/resources/application.yaml
-  checksum: 5e501f5a78f4f5ecf46058047c2b9596bf6d0fbf0e30e7a3b8158bb2aa3ef901
 - filename: user-service/src/main/resources/application.yaml
   checksum: 2b48f877bf63cdd8abd4e5b6a5600ac60c0cc58483b4715cb9b7ed2d30457552
 - filename: user-service/src/main/java/Transport_Urbain_Microservices/user_service/service/UserService.java
@@ -28,9 +26,19 @@ fileignoreconfig:
   checksum: 3147b3f39b506089ddb3c953ea27ff0bf09c82f7c85a5a108775a0d8b7a89024
 - filename: docker-compose2.yaml
   checksum: 4061c77b13beb84a0ec6f977589c041f5bdcdbea1d9f749f50ec7ad0685fcbae
-- filename: gateway-service/src/main/java/Transport_Urbain_Microservices/gateway_service/config/SecurityConfig.java
-  checksum: 5b688bdff90c9eb0c379717d3c77fcff1b411daa1911c48033dfdb83f9b9ed2d
 - filename: keycloak-realm-export/realm-export.json
   checksum: bf9a9b6f88575e416bcad24f4e04d420847f21e7b88f896ea6982ae598d90edf
+- filename: auth-service/src/main/java/Transport_Urbain_Microservices/auth_service/JwtUtil.java
+  checksum: cd66deb2832adf630a5ba64b47c2d747e71a917e80b9cc3a69f28944099f258b
+- filename: auth-service/mvnw
+  checksum: c053cc78461f1182a3423ab0b3f9973d16ef66aec58c6bceee34c7fcf6cdcd66
+- filename: gateway-service/src/main/java/Transport_Urbain_Microservices/gateway_service/controller/LoginController.java
+  checksum: 2fe3cf5f1c8639780303e92a2575633cd4d5b5d23042f6397f26474bc1b9c7af
+- filename: realm-export/realm-export.json
+  checksum: f53846c007e579137cad3200183b008244edaab3474973ba446cf00bacb3d6a6
+- filename: gateway-service/src/main/resources/application.yaml
+  checksum: e5bd6cb94510e098664a7e3d0302fc4498bd20e0cfaa8c5741ba790a87230d4a
+- filename: gateway-service/src/main/java/Transport_Urbain_Microservices/gateway_service/config/SecurityConfig.java
+  checksum: eac60e88fae9623e6b976f4b4a7de925fcbf7849855370d52460ab5459a35d09
 
 version: "1.0"

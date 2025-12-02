@@ -42,8 +42,7 @@ spring:
         registration:
           keycloak:
             client-id: gateway-client
-            # No client-secret needed for PKCE public client
-            client-secret: sW2yOESUPbOOxKmxeQCJ5Dm89Q8bnvpl
+            client-secret: ${KEYCLOAK_GATEWAY_CLIENT_SECRET}
             client-authentication-method: client_secret_basic
             authorization-grant-type: password
             scope:
@@ -53,6 +52,7 @@ spring:
             client-name: Keycloak
         provider:
           keycloak:
+            revocation-uri: http://localhost:8180/realms/my-realm/protocol/openid-connect/revoke  # Add this
             issuer-uri: http://localhost:8180/realms/my-realm
 #            authorization-uri: http://localhost:8180/realms/my-realm/protocol/openid-connect/auth
             token-uri: http://localhost:8180/realms/my-realm/protocol/openid-connect/token
