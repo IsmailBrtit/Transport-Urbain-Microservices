@@ -65,7 +65,7 @@ services:
       network: host
     container_name: abonnements-service
     ports:
-      - "8080:8080"
+      - "8084:8080"
     depends_on:
       postgres-abonnements:
         condition: service_healthy
@@ -81,7 +81,7 @@ services:
       - urbain-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -19,13 +19,13 @@ fileignoreconfig:
 - filename: route-service/src/main/java/Transport_Urbain_Microservices/route_service/dataloader/ScheduleDataLoader.java
   checksum: ed4000ed833bd3e3d24b5ca40a3eb3541a0fd3a69546615d9ca10d5a85e0131f
 - filename: user-service/src/main/resources/application-docker.yaml
-  checksum: 54a56d334ccd0a85d3d91adc36acdc8ed9599204861744efddb7b71f1e910754
+  checksum: 4e0d31e729533f07e2f6b6a5631fcd24032d22516012f7dda5ea197fe521e284
 - filename: gateway-service/src/main/resources/application-docker.yaml
-  checksum: 8763e360a0568fa7845c2689532e36c6e49e93f1dea7399283e394a1fc626cdb
+  checksum: a60d6c3d6f3781430fc83e35e464f685bb88889f338dbda06584e9c91f697a7a
 - filename: docker-compose.yml
   checksum: 3147b3f39b506089ddb3c953ea27ff0bf09c82f7c85a5a108775a0d8b7a89024
-- filename: docker-compose2.yaml
-  checksum: 4061c77b13beb84a0ec6f977589c041f5bdcdbea1d9f749f50ec7ad0685fcbae
+- filename: docker-compose2.yml
+  checksum: de024cb42a2fefa1bad7ea3864a73757d8228419195593c537f43634501b0bbc
 - filename: keycloak-realm-export/realm-export.json
   checksum: bf9a9b6f88575e416bcad24f4e04d420847f21e7b88f896ea6982ae598d90edf
 - filename: auth-service/src/main/java/Transport_Urbain_Microservices/auth_service/JwtUtil.java
@@ -40,5 +40,9 @@ fileignoreconfig:
   checksum: e5bd6cb94510e098664a7e3d0302fc4498bd20e0cfaa8c5741ba790a87230d4a
 - filename: gateway-service/src/main/java/Transport_Urbain_Microservices/gateway_service/config/SecurityConfig.java
   checksum: eac60e88fae9623e6b976f4b4a7de925fcbf7849855370d52460ab5459a35d09
+- filename: docker-compose2.yml
+  checksum: de024cb42a2fefa1bad7ea3864a73757d8228419195593c537f43634501b0bbc
+- filename: .env2
+  checksum: 7c4d0bc5d4294829261fb45c50564ae06b5bca2a8f91e7b14828bdd16c522f5c
 
 version: "1.0"
