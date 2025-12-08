@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email de test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+        }
+        .header .icon {
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        .content {
+            padding: 20px 0;
+        }
+        .greeting {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: #007bff;
+        }
+        .message-box {
+            background-color: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .success-badge {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .info-list {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #dee2e6;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="icon">📧</div>
+        <h1>Email de Test</h1>
+        <p>Système de Notifications Urbain</p>
+    </div>
+
+    <div class="content">
+        <p class="greeting">Bonjour <strong th:text="${nom}">Utilisateur</strong>,</p>
+
+        <div class="success-badge">✓ Configuration réussie!</div>
+
+        <div class="message-box">
+            <p th:text="${message}">Si vous recevez cet email, cela signifie que le service de notifications est correctement configuré.</p>
+        </div>
+
+        <div class="info-list">
+            <h3>🎯 Service de Notifications Opérationnel</h3>
+            <p>Le système de notifications Urbain est prêt à envoyer:</p>
+            <ul>
+                <li>✉️ Confirmations d'abonnement</li>
+                <li>🔄 Notifications de renouvellement</li>
+                <li>❌ Alertes d'annulation</li>
+                <li>⏰ Rappels d'expiration</li>
+                <li>🎫 Confirmations d'achat de tickets (à venir)</li>
+                <li>🚌 Alertes de perturbation (à venir)</li>
+            </ul>
+        </div>
+
+        <p><strong>Fonctionnalités du service :</strong></p>
+        <ul>
+            <li>📨 <strong>JavaMailSender</strong> - Envoi d'emails via Gmail SMTP</li>
+            <li>🎨 <strong>Thymeleaf</strong> - Templates HTML personnalisables</li>
+            <li>⚡ <strong>Async</strong> - Envoi asynchrone sans bloquer le système</li>
+            <li>📊 <strong>Kafka</strong> - Consommation d'événements en temps réel</li>
+            <li>💾 <strong>PostgreSQL</strong> - Historique des notifications envoyées</li>
+        </ul>
+
+        <p style="background-color: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107;">
+            ⚠️ <strong>Note :</strong> Ceci est un email de test. Les utilisateurs réels ne recevront que les notifications liées à leurs actions (abonnements, tickets, etc.).
+        </p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Système de Transport Urbain Urbain</strong></p>
+        <p>Service de Notifications - Version 1.0.0</p>
+        <p>Équipe: Hamza Souda, Ismail BRTIT, Yasser Nadifi, Souhail El Bouazzaoui</p>
+        <p style="font-size: 12px; color: #999; margin-top: 15px;">
+            Cet email a été envoyé automatiquement, merci de ne pas y répondre.
+        </p>
+    </div>
+</div>
+</body>
+</html>

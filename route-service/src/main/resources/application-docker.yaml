@@ -1,0 +1,36 @@
+server:
+  port: 8083
+
+app:
+  osm-file: classpath:osm-data.json
+  schedule-file: classpath:schedules.json
+
+spring:
+  application:
+    name: route-service
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:5432/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  security:
+    debug: false
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI}
+  mvc:
+    log-request-details: false
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    Transport_Urbain_Microservices.user_service: INFO

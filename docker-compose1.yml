@@ -1,0 +1,157 @@
+services:
+  postgres-abonnements:
+    container_name: postgres-abonnements
+    image: postgres:14
+    environment:
+      POSTGRES_DB: abonnements_db
+      POSTGRES_USER: abonnements_user
+      POSTGRES_PASSWORD: abonnements_password
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_abonnements_data:/data/postgres
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - urbain-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abonnements_user -d abonnements_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  zookeeper:
+    container_name: zookeeper
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - urbain-network
+    restart: unless-stopped
+
+
+  kafka:
+    container_name: kafka
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - urbain-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  abonnements-service:
+    build:
+      context: ./abonnements-service/abonnements-service
+      dockerfile: Dockerfile
+      network: host
+    container_name: abonnements-service
+    ports:
+      - "8084:8080"
+    depends_on:
+      postgres-abonnements:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-abonnements:5432/abonnements_db
+      SPRING_DATASOURCE_USERNAME: abonnements_user
+      SPRING_DATASOURCE_PASSWORD: abonnements_password
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    networks:
+      - urbain-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+
+  postgres-notifications:
+    container_name: postgres-notifications
+    image: postgres:14
+    environment:
+      POSTGRES_DB: notifications_db
+      POSTGRES_USER: notifications_user
+      POSTGRES_PASSWORD: notifications_password
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_notifications_data:/data/postgres
+    ports:
+      - "5438:5432"
+    restart: unless-stopped
+    networks:
+      - urbain-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notifications_user -d notifications_db"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
+  notifications-service:
+    build:
+      context: ./notifications-service/notifications-service
+      dockerfile: Dockerfile
+      network: host
+    container_name: notifications-service
+    ports:
+      - "8086:8086"
+    depends_on:
+      postgres-notifications:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    environment:
+      # Database
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Kafka
+      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      # Email
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+    networks:
+      - urbain-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8086/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_abonnements_data:
+    driver: local
+  postgres_notifications_data:
+    driver: local
+
+networks:
+  urbain-network:
+    driver: bridge

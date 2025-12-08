@@ -42,7 +42,7 @@ public class SecurityConfig {
         http
                 // Authorization rules
                 .authorizeExchange(exchanges -> exchanges
-                        .pathMatchers("/", "/public/**","/user/register", "/actuator/**", "/login/**", "/error").permitAll()
+                        .pathMatchers("/", "/public/**","/user/register", "/actuator/**", "/login/**", "/error","/abonnements/**","/notifications/**").permitAll()
                         .pathMatchers(HttpMethod.GET, "route/run/**", "route/stop/**", "route/route/**")
                         .permitAll().pathMatchers(HttpMethod.POST, "/login").permitAll()
                         .anyExchange().authenticated()

@@ -42,7 +42,10 @@ fileignoreconfig:
   checksum: eac60e88fae9623e6b976f4b4a7de925fcbf7849855370d52460ab5459a35d09
 - filename: docker-compose2.yml
   checksum: de024cb42a2fefa1bad7ea3864a73757d8228419195593c537f43634501b0bbc
+- filename: .env.example
+  checksum: 7462e086b3313645a85ac56b4084a6f28a823095db06c51e015a05d255dffb39
 - filename: .env2
-  checksum: 7c4d0bc5d4294829261fb45c50564ae06b5bca2a8f91e7b14828bdd16c522f5c
+  checksum: 0225864cfba407f943a90f8826595969958e0f4061ece453a312d05787b3b588
+
 
 version: "1.0"

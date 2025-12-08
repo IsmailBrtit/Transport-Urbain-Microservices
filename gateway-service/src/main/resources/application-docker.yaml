@@ -79,6 +79,22 @@ spring:
                 - TokenRelay=
                 - StripPrefix=1
 
+            - id: abonnements-service
+              uri: http://abonnements-service:8080
+              predicates:
+                - Path=/abonnements/**
+              filters:
+                - TokenRelay=
+                - StripPrefix=1
+
+            - id: notifications-service
+              uri: http://notifications-service:8086
+              predicates:
+                - Path=/notifications/**
+              filters:
+                - TokenRelay=
+                - StripPrefix=1
+
 # Keycloak Admin Configuration for User Registration
 keycloak:
   admin:

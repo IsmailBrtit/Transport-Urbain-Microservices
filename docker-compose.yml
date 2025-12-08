@@ -1,25 +1,76 @@
 services:
-  postgres-abonnements:
-    container_name: postgres-abonnements
-    image: postgres:14
+  # ==================== INFRASTRUCTURE SERVICES ====================
+  
+  # PostgreSQL for Keycloak
+  keycloak-db:
+    image: postgres:15
+    container_name: keycloak-db
     environment:
-      POSTGRES_DB: abonnements_db
-      POSTGRES_USER: abonnements_user
-      POSTGRES_PASSWORD: abonnements_password
-      PGDATA: /data/postgres
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
     volumes:
-      - postgres_abonnements_data:/data/postgres
-    ports:
-      - "5432:5432"
-    restart: unless-stopped
+      - keycloak_db_data:/var/lib/postgresql/data
     networks:
-      - urbain-network
+      - microservices-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U abonnements_user -d abonnements_db"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      test: ["CMD-SHELL", "pg_isready -U keycloak"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # Keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.4.4
+    container_name: keycloak
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN_USER}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://keycloak-db:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
+      KC_HOSTNAME: http://keycloak:8080  
+      KC_HOSTNAME_STRICT: false
+      KC_HOSTNAME_STRICT_HTTPS: false
+      KC_HTTP_ENABLED: true
+    volumes:
+      - ./keycloak-realm-export:/opt/keycloak/data/import
+    command:
+      - start-dev
+      - --import-realm
+    ports:
+      - "8180:8080"
+    depends_on:
+      keycloak-db:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 90s
+
+  # Redis for Gateway Session Storage
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    command: redis-server
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper for Kafka
   zookeeper:
     container_name: zookeeper
     image: confluentinc/cp-zookeeper:7.5.0
@@ -29,10 +80,10 @@ services:
     ports:
       - "2181:2181"
     networks:
-      - urbain-network
+      - microservices-network
     restart: unless-stopped
 
-
+  # Kafka
   kafka:
     container_name: kafka
     image: confluentinc/cp-kafka:7.5.0
@@ -50,7 +101,7 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
     networks:
-      - urbain-network
+      - microservices-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
@@ -58,36 +109,49 @@ services:
       timeout: 10s
       retries: 3
 
-  abonnements-service:
-    build:
-      context: ./abonnements-service/abonnements-service
-      dockerfile: Dockerfile
-      network: host
-    container_name: abonnements-service
-    ports:
-      - "8084:8080"
-    depends_on:
-      postgres-abonnements:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
+  # ==================== DATABASE SERVICES ====================
+
+  # PostgreSQL for User Service
+  user-service-db:
+    image: postgres:15
+    container_name: user-service-db
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-abonnements:5432/abonnements_db
-      SPRING_DATASOURCE_USERNAME: abonnements_user
-      SPRING_DATASOURCE_PASSWORD: abonnements_password
-      SPRING_PROFILES_ACTIVE: docker
-      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_DB: ${USER_DB_NAME}
+      POSTGRES_USER: ${USER_DB_USERNAME}
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+    volumes:
+      - user_service_db_data:/var/lib/postgresql/data
     networks:
-      - urbain-network
-    restart: unless-stopped
+      - microservices-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8084/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -U ${USER_DB_USERNAME} -d ${USER_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL for Abonnements Service
+  postgres-abonnements:
+    container_name: postgres-abonnements
+    image: postgres:14
+    environment:
+      POSTGRES_DB: abonnements_db
+      POSTGRES_USER: abonnements_user
+      POSTGRES_PASSWORD: abonnements_password
+      PGDATA: /data/postgres
+    volumes:
+      - postgres_abonnements_data:/data/postgres
+    ports:
+      - "5433:5432"  # Changed from 5432 to avoid conflict
+    restart: unless-stopped
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U abonnements_user -d abonnements_db"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
 
-
+  # PostgreSQL for Notifications Service
   postgres-notifications:
     container_name: postgres-notifications
     image: postgres:14
@@ -102,14 +166,145 @@ services:
       - "5438:5432"
     restart: unless-stopped
     networks:
-      - urbain-network
+      - microservices-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U notifications_user -d notifications_db"]
       interval: 30s
       timeout: 10s
       retries: 3
 
+  route-service-db:
+    image: postgres:15
+    container_name: route-service-db
+    environment:
+      POSTGRES_DB: route_db
+      POSTGRES_USER: route_user
+      POSTGRES_PASSWORD: route_password
+    volumes:
+      - route_service_db_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U route_user -d route_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  # ==================== APPLICATION SERVICES ====================
 
+  # Gateway Service
+  gateway-service:
+    build:
+      context: ./gateway-service
+      dockerfile: Dockerfile
+    container_name: gateway-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      # Redis Configuration
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      # Keycloak Configuration
+      KEYCLOAK_ISSUER_URI: http://host.docker.internal:8180/realms/${KEYCLOAK_REALM}
+      KEYCLOAK_TOKEN_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM}/protocol/openid-connect/token
+      KEYCLOAK_USER_INFO_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM}/protocol/openid-connect/userinfo
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs
+      KEYCLOAK_REVOCATION_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM}/protocol/openid-connect/revoke
+      KEYCLOAK_CLIENT_ID: gateway-client
+      KEYCLOAK_GATEWAY_CLIENT_SECRET: ${KEYCLOAK_GATEWAY_CLIENT_SECRET}
+      # Keycloak Admin Configuration
+      KEYCLOAK_ADMIN_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_ADMIN_CLIENT_ID: gateway-admin
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      redis:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      route-service:
+        condition: service_started  # Add this
+      abonnements-service:
+        condition: service_started
+      notifications-service:
+        condition: service_started
+    networks:
+      - microservices-network
+
+  # User Service
+  user-service:
+    build:
+      context: ./user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: user-service-db
+      DB_NAME: ${USER_DB_NAME}
+      DB_USERNAME: ${USER_DB_USERNAME}
+      DB_PASSWORD: ${USER_DB_PASSWORD}
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+      KEYCLOAK_ADMIN_CLIENT_SECRET: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
+    ports:
+      - "8082:8082"
+    depends_on:
+      user-service-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8082/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Abonnements Service
+  abonnements-service:
+    build:
+      context: ./abonnements-service/abonnements-service
+      dockerfile: Dockerfile
+      network: host
+    container_name: abonnements-service
+    ports:
+      - "8084:8080"
+    depends_on:
+      postgres-abonnements:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-abonnements:5432/abonnements_db
+      SPRING_DATASOURCE_USERNAME: abonnements_user
+      SPRING_DATASOURCE_PASSWORD: abonnements_password
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      # Keycloak Configuration (add these)
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
+    networks:
+      - microservices-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Notifications Service
   notifications-service:
     build:
       context: ./notifications-service/notifications-service
@@ -123,21 +318,27 @@ services:
         condition: service_healthy
       kafka:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     environment:
       # Database
-      DB_HOST: ${DB_HOST}
-      DB_PORT: ${DB_PORT}
-      DB_NAME: ${DB_NAME}
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: postgres-notifications
+      DB_PORT: 5432
+      DB_NAME: notifications_db
+      DB_USERNAME: notifications_user
+      DB_PASSWORD: notifications_password
       # Kafka
-      KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       # Email
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
       MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+      # Keycloak Configuration (add these)
+      KEYCLOAK_URL: http://keycloak:8080
+      KEYCLOAK_REALM: ${KEYCLOAK_REALM}
+      KEYCLOAK_CLIENT_ID: ${KEYCLOAK_CLIENT_ID}
     networks:
-      - urbain-network
+      - microservices-network
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8086/actuator/health || exit 1"]
@@ -146,12 +347,45 @@ services:
       retries: 3
       start_period: 60s
 
+# Route Service
+  route-service:
+    build:
+      context: ./route-service
+      dockerfile: Dockerfile
+    container_name: route-service
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DB_HOST: route-service-db
+      DB_NAME: route_db
+      DB_USERNAME: route_user
+      DB_PASSWORD: route_password
+      KEYCLOAK_ISSUER_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM}
+      KEYCLOAK_JWK_SET_URI: http://keycloak:8080/realms/${KEYCLOAK_REALM}/protocol/openid-connect/certs
+    ports:
+      - "8083:8083"
+    depends_on:
+      route-service-db:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8083/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+
 volumes:
+  keycloak_db_data:
+  user_service_db_data:
+  redis_data:
   postgres_abonnements_data:
-    driver: local
   postgres_notifications_data:
-    driver: local
+  route_service_db_data:
 
 networks:
-  urbain-network:
+  microservices-network:
     driver: bridge
